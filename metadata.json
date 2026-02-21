@@ -1,0 +1,7 @@
+{
+  "name": "SNAP STYLE",
+  "description": "AI-powered outfit feedback and occasion planner with style analytics and moodboard generation.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}

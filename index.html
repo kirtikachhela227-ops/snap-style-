@@ -1,0 +1,71 @@
+
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>SNAP STYLE | AI Fashion Feedback</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Spline+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet"/>
+    <script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              colors: {
+                "primary": "#8b2cf5",
+                "primary-light": "#f5f0ff",
+                "background-main": "#ffffff",
+                "background-alt": "#fcfaff",
+                "neutral-text": "#1a1a1a",
+                "neutral-muted": "#666666",
+                "border-subtle": "#e5e0eb",
+              },
+              fontFamily: {
+                "display": ["Spline Sans", "sans-serif"]
+              },
+              boxShadow: {
+                'soft': '0 4px 20px -2px rgba(139, 44, 245, 0.08)',
+                'card': '0 2px 12px -1px rgba(0, 0, 0, 0.04)',
+              }
+            },
+          },
+        }
+    </script>
+    <style>
+        body { 
+          font-family: 'Spline Sans', sans-serif; 
+          background-color: #ffffff;
+          color: #1a1a1a;
+          -webkit-font-smoothing: antialiased;
+        }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #8b2cf533; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #8b2cf566; }
+        
+        /* Fix for potential overlapping in grid/flex layouts */
+        .page-container {
+          max-width: 1400px;
+          margin: 0 auto;
+          width: 100%;
+        }
+    </style>
+<script type="importmap">
+{
+  "imports": {
+    "react-dom/": "https://esm.sh/react-dom@^19.2.4/",
+    "react/": "https://esm.sh/react@^19.2.4/",
+    "react": "https://esm.sh/react@^19.2.4",
+    "react-router-dom": "https://esm.sh/react-router-dom@^7.1.5",
+    "@google/genai": "https://esm.sh/@google/genai@^1.41.0",
+    "recharts": "https://esm.sh/recharts@^3.7.0"
+  }
+}
+</script>
+</head>
+<body class="bg-background-main text-neutral-text min-h-screen">
+    <div id="root"></div>
+</body>
+</html>
