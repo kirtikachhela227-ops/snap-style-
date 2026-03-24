@@ -1,0 +1,39 @@
+@import url('https://fonts.googleapis.com/css2?family=Spline+Sans:wght@300;400;500;600;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #8b2cf5;
+  --color-primary-light: #f5f0ff;
+  --color-background-main: #ffffff;
+  --color-background-alt: #fcfaff;
+  --color-neutral-text: #1a1a1a;
+  --color-neutral-muted: #666666;
+  --color-border-subtle: #e5e0eb;
+
+  --font-display: "Spline Sans", sans-serif;
+
+  --shadow-soft: 0 4px 20px -2px rgba(139, 44, 245, 0.08);
+  --shadow-card: 0 2px 12px -1px rgba(0, 0, 0, 0.04);
+}
+
+@layer base {
+  body { 
+    font-family: 'Spline Sans', sans-serif; 
+    background-color: #ffffff;
+    color: #1a1a1a;
+    -webkit-font-smoothing: antialiased;
+  }
+}
+
+@layer utilities {
+  .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+  .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; }
+  .custom-scrollbar::-webkit-scrollbar-thumb { background: #8b2cf533; border-radius: 10px; }
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #8b2cf566; }
+  
+  .page-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    width: 100%;
+  }
+}

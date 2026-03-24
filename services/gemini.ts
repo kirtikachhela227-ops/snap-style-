@@ -2,7 +2,18 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { StylingFeedback } from '../types';
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
+let ai: GoogleGenAI | null = null;
+
+const getAI = () => {
+  if (!ai) {
+    const apiKey = process.env.GEMINI_API_KEY || process.env.API_KEY;
+    if (!apiKey) {
+      throw new Error("GEMINI_API_KEY is not set. Please add it to your environment variables.");
+    }
+    ai = new GoogleGenAI({ apiKey });
+  }
+  return ai;
+};
 
 export const analyzeOutfit = async (
   base64Image: string,
@@ -11,7 +22,7 @@ export const analyzeOutfit = async (
   weather: string
 ): Promise<StylingFeedback> => {
   try {
-    const response = await ai.models.generateContent({
+    const response = await getAI().models.generateContent({
       model: "gemini-3-flash-preview",
       contents: {
         parts: [
