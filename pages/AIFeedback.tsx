@@ -173,7 +173,7 @@ const AIFeedback: React.FC<AIFeedbackProps> = ({ onSaveOutfit }) => {
               <div className="p-8 lg:p-10 border-b border-border-subtle bg-background-alt/50 flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div>
                   <h2 className="text-2xl font-bold text-neutral-text mb-1 tracking-tight">Style Intelligence Report</h2>
-                  <p className="text-neutral-muted text-sm font-medium">Processed by Gemini 3 Core Engine</p>
+                  <p className="text-neutral-muted text-sm font-medium">Processed by Groq AI Engine</p>
                 </div>
                 <div className="flex items-center gap-4 bg-white p-2.5 pr-6 rounded-2xl border border-border-subtle shadow-sm">
                   <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${isMatchNegative ? 'bg-rose-500/10 text-rose-600' : 'bg-emerald-500/10 text-emerald-600'}`}>
