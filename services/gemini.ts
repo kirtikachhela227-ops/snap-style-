@@ -7,7 +7,7 @@ let ai: GoogleGenAI | null = null;
 const getAI = () => {
   if (!ai) {
     const apiKey = process.env.GEMINI_API_KEY || process.env.API_KEY || (import.meta.env as any).VITE_GEMINI_API_KEY;
-    console.log("Initializing Gemini with key present:", !!apiKey);
+    console.log(`[${new Date().toISOString()}] Initializing Gemini with key present:`, !!apiKey);
     ai = new GoogleGenAI({ apiKey: apiKey || "" });
   }
   return ai;

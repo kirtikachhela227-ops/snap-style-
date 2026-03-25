@@ -1,4 +1,5 @@
 
+// App.tsx - Updated to force rebuild for environment variable injection
 import React, { useState } from 'react';
 import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Outfit } from './types';
