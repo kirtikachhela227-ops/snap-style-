@@ -18,8 +18,14 @@ const AIFeedback: React.FC<AIFeedbackProps> = ({ onSaveOutfit }) => {
   const [feedback, setFeedback] = useState<StylingFeedback | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [apiKeyStatus, setApiKeyStatus] = useState<'checking' | 'found' | 'missing'>('checking');
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const key = process.env.GEMINI_API_KEY || process.env.API_KEY || (import.meta.env as any).VITE_GEMINI_API_KEY;
+    setApiKeyStatus(key ? 'found' : 'missing');
+  }, []);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
@@ -168,6 +174,25 @@ const AIFeedback: React.FC<AIFeedbackProps> = ({ onSaveOutfit }) => {
               <span className="material-icons-round text-xl">{isAnalyzing ? 'loop' : 'auto_awesome'}</span>
               <span>{isAnalyzing ? 'Analyzing Look...' : 'Get Instant Critique'}</span>
             </button>
+
+            {apiKeyStatus === 'missing' && (
+              <div className="p-4 bg-amber-50 border border-amber-100 rounded-xl flex flex-col gap-2 animate-in fade-in slide-in-from-top-2">
+                <div className="flex items-start gap-3">
+                  <span className="material-icons-round text-amber-500 text-lg">vpn_key</span>
+                  <p className="text-xs text-amber-700 font-medium leading-relaxed">
+                    AI Key not detected. Please add <code className="bg-amber-100 px-1 rounded">GEMINI_API_KEY</code> to <strong>Settings > Secrets</strong> to enable analysis.
+                  </p>
+                </div>
+                <a 
+                  href="https://aistudio.google.com/app/apikey" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-[10px] text-amber-600 underline ml-8 hover:text-amber-800"
+                >
+                  Get a free key here →
+                </a>
+              </div>
+            )}
 
             {error && (
               <div className="p-4 bg-rose-50 border border-rose-100 rounded-xl flex items-start gap-3 animate-in fade-in slide-in-from-top-2">
