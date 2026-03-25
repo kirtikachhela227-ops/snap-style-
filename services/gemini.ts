@@ -3,26 +3,29 @@ import { GoogleGenAI, Type } from "@google/genai";
 import { StylingFeedback } from '../types';
 
 let ai: GoogleGenAI | null = null;
+let currentKey: string | null = null;
 
 const getAI = async () => {
-  if (!ai) {
-    let apiKey = process.env.GEMINI_API_KEY || process.env.API_KEY || (import.meta as any).env?.VITE_GEMINI_API_KEY;
-    
-    // Fallback: Fetch from server-side config endpoint if not found in frontend env
-    if (!apiKey) {
-      try {
-        const response = await fetch('/api/config');
-        if (response.ok) {
-          const config = await response.json();
-          apiKey = config.apiKey;
-        }
-      } catch (err) {
-        console.error("Failed to fetch config from server:", err);
+  let apiKey = process.env.API_KEY || process.env.GEMINI_API_KEY || (import.meta as any).env?.VITE_GEMINI_API_KEY;
+  
+  // Fallback: Fetch from server-side config endpoint if not found in frontend env
+  if (!apiKey) {
+    try {
+      const response = await fetch('/api/config');
+      if (response.ok) {
+        const config = await response.json();
+        apiKey = config.apiKey;
       }
+    } catch (err) {
+      console.error("Failed to fetch config from server:", err);
     }
+  }
 
+  // Re-initialize if key has changed or was previously empty
+  if (!ai || (apiKey && apiKey !== currentKey)) {
     console.log(`[${new Date().toISOString()}] Initializing Gemini with key present:`, !!apiKey);
     ai = new GoogleGenAI({ apiKey: apiKey || "" });
+    currentKey = apiKey || null;
   }
   return ai;
 };

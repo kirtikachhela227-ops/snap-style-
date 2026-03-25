@@ -24,7 +24,7 @@ const AIFeedback: React.FC<AIFeedbackProps> = ({ onSaveOutfit }) => {
 
   useEffect(() => {
     const checkKey = async () => {
-      let key = process.env.GEMINI_API_KEY || process.env.API_KEY || (import.meta as any).env?.VITE_GEMINI_API_KEY;
+      let key = process.env.API_KEY || process.env.GEMINI_API_KEY || (import.meta as any).env?.VITE_GEMINI_API_KEY;
       if (!key) {
         try {
           const response = await fetch('/api/config');
@@ -57,7 +57,24 @@ const AIFeedback: React.FC<AIFeedbackProps> = ({ onSaveOutfit }) => {
     setIsAnalyzing(true);
     setFeedback(null);
     setError(null);
+    
     try {
+      // Re-check key status before analysis
+      let key = process.env.API_KEY || process.env.GEMINI_API_KEY || (import.meta as any).env?.VITE_GEMINI_API_KEY;
+      if (!key) {
+        const response = await fetch('/api/config');
+        if (response.ok) {
+          const config = await response.json();
+          key = config.apiKey;
+        }
+      }
+      
+      if (!key) {
+        setApiKeyStatus('missing');
+        throw new Error("AI Key not detected. Please add API_KEY to Settings > Secrets.");
+      }
+      
+      setApiKeyStatus('found');
       const base64Data = preview.split(',')[1];
       const result = await analyzeOutfit(base64Data, occasion, mood, weather);
       setFeedback(result);
@@ -193,9 +210,36 @@ const AIFeedback: React.FC<AIFeedbackProps> = ({ onSaveOutfit }) => {
               <div className="p-4 bg-amber-50 border border-amber-100 rounded-xl flex flex-col gap-2 animate-in fade-in slide-in-from-top-2">
                 <div className="flex items-start gap-3">
                   <span className="material-icons-round text-amber-500 text-lg">vpn_key</span>
-                  <p className="text-xs text-amber-700 font-medium leading-relaxed">
-                    AI Key not detected. Please add <code className="bg-amber-100 px-1 rounded">GEMINI_API_KEY</code> to <strong>Settings &gt; Secrets</strong> to enable analysis.
-                  </p>
+                  <div className="flex-1">
+                    <p className="text-xs text-amber-700 font-medium leading-relaxed">
+                      AI Key not detected. Please add <code className="bg-amber-100 px-1 rounded">API_KEY</code> to <strong>Settings &gt; Secrets</strong> to enable analysis.
+                    </p>
+                    <button 
+                      onClick={() => {
+                        const checkKey = async () => {
+                          setApiKeyStatus('checking');
+                          let key = process.env.API_KEY || process.env.GEMINI_API_KEY || (import.meta as any).env?.VITE_GEMINI_API_KEY;
+                          if (!key) {
+                            try {
+                              const response = await fetch('/api/config');
+                              if (response.ok) {
+                                const config = await response.json();
+                                key = config.apiKey;
+                              }
+                            } catch (err) {
+                              console.error("Failed to check key from server:", err);
+                            }
+                          }
+                          setApiKeyStatus(key ? 'found' : 'missing');
+                        };
+                        checkKey();
+                      }}
+                      className="mt-2 text-[10px] bg-amber-200 hover:bg-amber-300 text-amber-800 px-2 py-1 rounded font-bold transition-colors flex items-center gap-1"
+                    >
+                      <span className="material-icons-round text-[12px]">refresh</span>
+                      Refresh Status
+                    </button>
+                  </div>
                 </div>
                 <a 
                   href="https://aistudio.google.com/app/apikey" 
