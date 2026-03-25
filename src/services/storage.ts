@@ -16,7 +16,7 @@ const SUGGESTIONS: Outfit[] = [
     color: 'White & Blue',
     price: 2500,
     is_suggestion: true,
-    imageUrl: 'https://images.unsplash.com/photo-1519085185758-2ad9f12117b1?auto=format&fit=crop&q=80&w=800',
+    imageUrl: 'https://images.unsplash.com/photo-1617137984095-74e4e5e3613f?auto=format&fit=crop&q=80&w=800',
     created_at: new Date().toISOString()
   },
   {
@@ -30,7 +30,7 @@ const SUGGESTIONS: Outfit[] = [
     color: 'All Black',
     price: 8500,
     is_suggestion: true,
-    imageUrl: 'https://images.unsplash.com/photo-1516726817505-f5ed825624d8?auto=format&fit=crop&q=80&w=800',
+    imageUrl: 'https://images.unsplash.com/photo-1551028719-00167b16eac5?auto=format&fit=crop&q=80&w=800',
     created_at: new Date().toISOString()
   },
   {
@@ -44,7 +44,7 @@ const SUGGESTIONS: Outfit[] = [
     color: 'Grey & Pastel',
     price: 3500,
     is_suggestion: true,
-    imageUrl: 'https://images.unsplash.com/photo-1552374196-1ab2a1c593e8?auto=format&fit=crop&q=80&w=800',
+    imageUrl: 'https://images.unsplash.com/photo-1523381210434-271e8be1f52b?auto=format&fit=crop&q=80&w=800',
     created_at: new Date().toISOString()
   },
   {
@@ -58,7 +58,7 @@ const SUGGESTIONS: Outfit[] = [
     color: 'Maroon & Black',
     price: 5500,
     is_suggestion: true,
-    imageUrl: 'https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&q=80&w=800',
+    imageUrl: 'https://images.unsplash.com/photo-1598033129183-c4f50c7176c8?auto=format&fit=crop&q=80&w=800',
     created_at: new Date().toISOString()
   },
   {
@@ -72,7 +72,7 @@ const SUGGESTIONS: Outfit[] = [
     color: 'Navy & Beige',
     price: 12000,
     is_suggestion: true,
-    imageUrl: 'https://images.unsplash.com/photo-1594938298603-c8148c4dae35?auto=format&fit=crop&q=80&w=800',
+    imageUrl: 'https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&q=80&w=800',
     created_at: new Date().toISOString()
   },
   {
@@ -86,7 +86,35 @@ const SUGGESTIONS: Outfit[] = [
     color: 'Floral & White',
     price: 3200,
     is_suggestion: true,
-    imageUrl: 'https://images.unsplash.com/photo-1523381210434-271e8be1f52b?auto=format&fit=crop&q=80&w=800',
+    imageUrl: 'https://images.unsplash.com/photo-1594932224828-b4b059b6f684?auto=format&fit=crop&q=80&w=800',
+    created_at: new Date().toISOString()
+  },
+  {
+    id: 's7',
+    name: 'Traditional Wedding',
+    occasion: 'Wedding',
+    time: 'Night',
+    top: 'Embroidered Sherwani',
+    bottom: 'White Pajama',
+    footwear: 'Jutti',
+    color: 'Gold & Cream',
+    price: 15000,
+    is_suggestion: true,
+    imageUrl: 'https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&q=80&w=800',
+    created_at: new Date().toISOString()
+  },
+  {
+    id: 's8',
+    name: 'Smart College Presentation',
+    occasion: 'College',
+    time: 'Day',
+    top: 'Light Blue Oxford Shirt',
+    bottom: 'Dark Grey Trousers',
+    footwear: 'Brown Derbies',
+    color: 'Blue & Grey',
+    price: 4500,
+    is_suggestion: true,
+    imageUrl: 'https://images.unsplash.com/photo-1519085185758-2ad9f12117b1?auto=format&fit=crop&q=80&w=800',
     created_at: new Date().toISOString()
   }
 ];

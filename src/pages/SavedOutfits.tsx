@@ -31,11 +31,9 @@ const SavedOutfits: React.FC = () => {
   }, [filterOccasion, outfits]);
 
   const handleDelete = (id: string) => {
-    if (window.confirm('Are you sure you want to delete this outfit?')) {
-      storage.deleteOutfit(id);
-      const updated = outfits.filter(o => o.id !== id);
-      setOutfits(updated);
-    }
+    storage.deleteOutfit(id);
+    const updated = outfits.filter(o => o.id !== id);
+    setOutfits(updated);
   };
 
   if (loading) return <div className="flex items-center justify-center h-screen">Loading...</div>;
@@ -86,10 +84,13 @@ const SavedOutfits: React.FC = () => {
               {outfit.imageUrl && (
                 <div className="h-64 overflow-hidden relative">
                   <img 
-                    src={outfit.imageUrl} 
+                    src={outfit.imageUrl || 'https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?auto=format&fit=crop&q=80&w=800'} 
                     alt={outfit.name} 
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                     referrerPolicy="no-referrer"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?auto=format&fit=crop&q=80&w=800';
+                    }}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
                 </div>

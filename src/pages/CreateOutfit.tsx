@@ -16,7 +16,8 @@ const CreateOutfit: React.FC = () => {
     bottom: '',
     footwear: '',
     color: '',
-    price: 0
+    price: 0,
+    imageUrl: ''
   });
 
   const occasions = ['College', 'Party', 'Casual', 'Wedding'];
@@ -31,7 +32,7 @@ const CreateOutfit: React.FC = () => {
       storage.saveOutfit(user.id, formData);
       navigate('/saved');
     } catch (err: any) {
-      alert(err.message);
+      console.error(err.message);
     } finally {
       setLoading(false);
     }
@@ -171,9 +172,23 @@ const CreateOutfit: React.FC = () => {
                 placeholder="e.g. Navy & Beige"
               />
             </div>
+            <div className="space-y-4 mb-8">
+              <label className="text-xs font-black uppercase tracking-widest text-gray-400 px-1 flex items-center gap-2">
+                <Tag size={14} />
+                <span>Image URL (Optional)</span>
+              </label>
+              <input
+                type="url"
+                value={formData.imageUrl}
+                onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
+                className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 px-6 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all font-bold text-gray-700"
+                placeholder="https://images.unsplash.com/..."
+              />
+            </div>
           </div>
 
           <button
+            type="submit"
             disabled={loading}
             className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-black py-6 rounded-[2.5rem] shadow-xl shadow-indigo-200 transition-all flex items-center justify-center gap-3 group"
           >
