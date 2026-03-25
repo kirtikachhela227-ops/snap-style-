@@ -1,5 +1,5 @@
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { StylingFeedback, Outfit, OutfitStatus } from '../types';
 import { analyzeOutfit } from '../services/gemini';
@@ -23,8 +23,22 @@ const AIFeedback: React.FC<AIFeedbackProps> = ({ onSaveOutfit }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    const key = process.env.GEMINI_API_KEY || process.env.API_KEY || (import.meta.env as any).VITE_GEMINI_API_KEY;
-    setApiKeyStatus(key ? 'found' : 'missing');
+    const checkKey = async () => {
+      let key = process.env.GEMINI_API_KEY || process.env.API_KEY || (import.meta as any).env?.VITE_GEMINI_API_KEY;
+      if (!key) {
+        try {
+          const response = await fetch('/api/config');
+          if (response.ok) {
+            const config = await response.json();
+            key = config.apiKey;
+          }
+        } catch (err) {
+          console.error("Failed to check key from server:", err);
+        }
+      }
+      setApiKeyStatus(key ? 'found' : 'missing');
+    };
+    checkKey();
   }, []);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -180,7 +194,7 @@ const AIFeedback: React.FC<AIFeedbackProps> = ({ onSaveOutfit }) => {
                 <div className="flex items-start gap-3">
                   <span className="material-icons-round text-amber-500 text-lg">vpn_key</span>
                   <p className="text-xs text-amber-700 font-medium leading-relaxed">
-                    AI Key not detected. Please add <code className="bg-amber-100 px-1 rounded">GEMINI_API_KEY</code> to <strong>Settings > Secrets</strong> to enable analysis.
+                    AI Key not detected. Please add <code className="bg-amber-100 px-1 rounded">GEMINI_API_KEY</code> to <strong>Settings &gt; Secrets</strong> to enable analysis.
                   </p>
                 </div>
                 <a 
@@ -189,7 +203,7 @@ const AIFeedback: React.FC<AIFeedbackProps> = ({ onSaveOutfit }) => {
                   rel="noopener noreferrer"
                   className="text-[10px] text-amber-600 underline ml-8 hover:text-amber-800"
                 >
-                  Get a free key here →
+                  Get a free key here &rarr;
                 </a>
               </div>
             )}

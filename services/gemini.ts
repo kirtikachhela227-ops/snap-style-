@@ -4,9 +4,23 @@ import { StylingFeedback } from '../types';
 
 let ai: GoogleGenAI | null = null;
 
-const getAI = () => {
+const getAI = async () => {
   if (!ai) {
-    const apiKey = process.env.GEMINI_API_KEY || process.env.API_KEY || (import.meta.env as any).VITE_GEMINI_API_KEY;
+    let apiKey = process.env.GEMINI_API_KEY || process.env.API_KEY || (import.meta as any).env?.VITE_GEMINI_API_KEY;
+    
+    // Fallback: Fetch from server-side config endpoint if not found in frontend env
+    if (!apiKey) {
+      try {
+        const response = await fetch('/api/config');
+        if (response.ok) {
+          const config = await response.json();
+          apiKey = config.apiKey;
+        }
+      } catch (err) {
+        console.error("Failed to fetch config from server:", err);
+      }
+    }
+
     console.log(`[${new Date().toISOString()}] Initializing Gemini with key present:`, !!apiKey);
     ai = new GoogleGenAI({ apiKey: apiKey || "" });
   }
@@ -20,7 +34,8 @@ export const analyzeOutfit = async (
   weather: string
 ): Promise<StylingFeedback> => {
   try {
-    const response = await getAI().models.generateContent({
+    const aiInstance = await getAI();
+    const response = await aiInstance.models.generateContent({
       model: "gemini-3-flash-preview",
       contents: {
         parts: [
