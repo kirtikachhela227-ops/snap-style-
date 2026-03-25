@@ -1,41 +1,29 @@
-
-export enum Page {
-  Dashboard = 'dashboard',
-  Vault = 'vault',
-  AIAnalysis = 'analysis',
-  Moodboard = 'moodboard',
-  Analytics = 'analytics',
-  Planner = 'planner'
-}
-
-export type OutfitStatus = 'worked_well' | 'needs_improvement' | 'saved';
-
 export interface Outfit {
   id: string;
+  user_id: string;
   name: string;
-  imageUrl: string;
+  occasion: 'College' | 'Party' | 'Wedding' | 'Casual';
+  top: string;
+  bottom: string;
+  footwear: string;
+  color: string;
+  price: number;
+  times_worn: number;
+  is_favorite: boolean;
+  created_at: string;
+}
+
+export interface Event {
+  id: string;
+  user_id: string;
+  name: string;
   date: string;
-  rating: number;
-  occasion: string;
-  weather: string;
-  mood: string;
-  status: OutfitStatus;
-  liked?: boolean;
+  outfit_id: string;
+  created_at: string;
+  outfit?: Outfit;
 }
 
-export interface StylingFeedback {
-  reasoning: string;
-  visualBalance: number;
-  weatherPracticality: number;
-  tips: string[];
-  tags: string[];
-  matchStatus: string; // e.g. "YES", "NO", "PARTIALLY"
-}
-
-export interface UserProfile {
-  name: string;
-  role: string;
-  bio: string;
-  avatar: string;
-  preferences: string[];
+export interface UserStats {
+  totalOutfits: number;
+  favoriteOutfits: number;
 }

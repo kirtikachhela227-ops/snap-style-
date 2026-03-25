@@ -1,111 +1,115 @@
-
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { storage } from '../services/storage';
 import { Outfit } from '../types';
+import { Plus, Heart, Shirt, DollarSign, TrendingUp, Calendar, ArrowRight } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import Layout from '../components/Layout';
 
-interface DashboardProps {
-  outfits: Outfit[];
-}
+const Dashboard: React.FC = () => {
+  const [outfits, setOutfits] = useState<Outfit[]>([]);
+  const [loading, setLoading] = useState(true);
 
-const Dashboard: React.FC<DashboardProps> = ({ outfits }) => {
-  const navigate = useNavigate();
+  useEffect(() => {
+    const data = storage.getOutfits();
+    setOutfits(data);
+    setLoading(false);
+  }, []);
+
+  const stats = [
+    { label: 'Total Outfits', value: outfits.length, icon: Shirt, color: 'text-indigo-600', bg: 'bg-indigo-50' },
+    { label: 'Favorites', value: outfits.filter(o => o.is_favorite).length, icon: Heart, color: 'text-pink-600', bg: 'bg-pink-50' },
+    { label: 'Avg. Cost/Wear', value: `$${(outfits.reduce((acc, o) => acc + (o.price / o.times_worn), 0) / (outfits.length || 1)).toFixed(2)}`, icon: DollarSign, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+  ];
+
+  if (loading) return <div className="flex items-center justify-center h-screen">Loading...</div>;
 
   return (
-    <div className="page-container p-6 lg:p-10 space-y-12">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        <div className="bg-primary p-10 rounded-[2rem] text-white shadow-soft shadow-primary/20 flex flex-col justify-between min-h-[260px] relative overflow-hidden group">
-          <div className="absolute -right-10 -top-10 w-40 h-40 bg-white/10 rounded-full blur-2xl group-hover:scale-125 transition-transform duration-700"></div>
-          <div className="relative z-10">
-            <h3 className="text-[11px] font-bold uppercase tracking-[0.25em] opacity-70 mb-3">Overall Style Index</h3>
-            <p className="text-6xl font-bold tracking-tighter">88<span className="text-xl font-medium opacity-50 ml-1">/100</span></p>
-          </div>
-          <div className="relative z-10">
-            <div className="inline-flex items-center gap-2 bg-white/20 px-3 py-1.5 rounded-xl text-[11px] font-bold mb-4">
-              <span className="material-icons-round text-xs">trending_up</span>
-              +12% vs last month
-            </div>
-            <p className="text-sm opacity-90 leading-relaxed font-medium">
-              You're in the elite top <span className="font-bold">5% of curators</span> globally this week!
-            </p>
-          </div>
+    <Layout>
+      <div className="mb-12 flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div>
+          <h1 className="text-4xl font-black text-gray-900 tracking-tight mb-2">Welcome Back!</h1>
+          <p className="text-gray-500 font-medium">Your smart wardrobe is ready for today.</p>
         </div>
+        <Link
+          to="/create"
+          className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-8 py-4 rounded-2xl shadow-xl shadow-indigo-200 transition-all flex items-center gap-2 w-fit"
+        >
+          <Plus size={20} />
+          <span>New Outfit</span>
+        </Link>
+      </div>
 
-        <div className="bg-white p-10 rounded-[2rem] border border-border-subtle shadow-card flex flex-col justify-between min-h-[260px]">
-          <div>
-            <h3 className="text-[11px] font-bold uppercase tracking-[0.25em] text-neutral-muted mb-6">Archive Metrics</h3>
-            <div className="space-y-5">
-              {[
-                { label: 'Vault Items', val: outfits.length, icon: 'inventory_2', path: '/vault' },
-                { label: 'Critiques Done', val: 14, icon: 'auto_awesome', path: '/analysis' },
-                { label: 'Moodboards', val: 3, icon: 'palette', path: '/moodboard' },
-              ].map((stat, i) => (
-                <div 
-                  key={i} 
-                  onClick={() => navigate(stat.path)}
-                  className="flex justify-between items-center group cursor-pointer hover:bg-background-alt p-1 rounded-lg transition-colors"
-                >
-                  <div className="flex items-center gap-3">
-                    <span className="material-icons-round text-primary text-xl opacity-60 group-hover:opacity-100 transition-opacity">{stat.icon}</span>
-                    <span className="text-sm font-semibold text-neutral-text">{stat.label}</span>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+        {stats.map((stat, i) => (
+          <div key={i} className="bg-white p-8 rounded-[2.5rem] shadow-sm border border-gray-100 flex items-center gap-6 group hover:shadow-xl transition-all">
+            <div className={`w-16 h-16 ${stat.bg} ${stat.color} rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform`}>
+              <stat.icon size={32} />
+            </div>
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1">{stat.label}</p>
+              <p className="text-3xl font-black text-gray-900 leading-none">{stat.value}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="bg-white p-10 rounded-[3rem] shadow-sm border border-gray-100">
+          <div className="flex items-center justify-between mb-8">
+            <h2 className="text-2xl font-black text-gray-900 tracking-tight">Recent Outfits</h2>
+            <Link to="/history" className="text-indigo-600 font-bold flex items-center gap-1 hover:gap-2 transition-all">
+              <span>View All</span>
+              <ArrowRight size={18} />
+            </Link>
+          </div>
+          
+          {outfits.length === 0 ? (
+            <div className="py-12 text-center">
+              <p className="text-gray-400 font-medium">No outfits saved yet.</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {outfits.slice(0, 3).map((outfit) => (
+                <div key={outfit.id} className="flex items-center justify-between p-6 bg-gray-50 rounded-3xl hover:bg-indigo-50 transition-colors group">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-indigo-600 shadow-sm">
+                      <Shirt size={24} />
+                    </div>
+                    <div>
+                      <h4 className="font-black text-gray-900 leading-none mb-1">{outfit.name}</h4>
+                      <p className="text-xs font-bold text-gray-400">{outfit.occasion}</p>
+                    </div>
                   </div>
-                  <span className="font-bold text-lg text-primary">{stat.val}</span>
+                  <div className="text-right">
+                    <p className="text-xs font-black text-indigo-600">${(outfit.price / outfit.times_worn).toFixed(2)}</p>
+                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Cost/Wear</p>
+                  </div>
                 </div>
               ))}
             </div>
-          </div>
-          <button 
-            onClick={() => navigate('/analytics')}
-            className="text-primary text-sm font-bold flex items-center gap-1.5 hover:gap-3 transition-all active:translate-x-1"
-          >
-            Full Analytics <span className="material-icons-round text-lg">east</span>
-          </button>
+          )}
         </div>
 
-        <div className="bg-white p-10 rounded-[2rem] border border-border-subtle shadow-card flex flex-col justify-between min-h-[260px]">
-          <div>
-            <h3 className="text-[11px] font-bold uppercase tracking-[0.25em] text-neutral-muted mb-4">Upcoming Logic</h3>
-            <p className="text-2xl font-bold text-neutral-text mb-1 tracking-tight">Executive Meeting</p>
-            <p className="text-xs text-neutral-muted mb-6 flex items-center gap-1.5 font-medium">
-              <span className="material-icons-round text-sm text-primary opacity-60">calendar_today</span> Tomorrow, 10:00 AM
+        <div className="bg-indigo-600 p-10 rounded-[3rem] shadow-xl shadow-indigo-200 text-white relative overflow-hidden">
+          <div className="relative z-10">
+            <h2 className="text-2xl font-black tracking-tight mb-4">Plan Your Week</h2>
+            <p className="text-indigo-100 font-medium mb-8 leading-relaxed">
+              Schedule your outfits for upcoming weddings, parties, or college events to stay organized.
             </p>
+            <Link
+              to="/events"
+              className="bg-white text-indigo-600 font-black px-8 py-4 rounded-2xl inline-flex items-center gap-2 hover:bg-indigo-50 transition-colors"
+            >
+              <Calendar size={20} />
+              <span>Go to Planner</span>
+            </Link>
           </div>
-          <button 
-            onClick={() => navigate('/analysis')}
-            className="w-full py-4 bg-primary-light text-primary font-bold rounded-2xl text-xs uppercase tracking-widest border border-primary/10 hover:bg-primary hover:text-white transition-all shadow-sm active:scale-[0.98]"
-          >
-            Simulate Outfit
-          </button>
+          <div className="absolute -bottom-10 -right-10 opacity-10 transform rotate-12">
+            <Calendar size={240} />
+          </div>
         </div>
       </div>
-
-      <section className="space-y-6">
-        <div className="flex items-center justify-between">
-          <h3 className="text-xl font-bold tracking-tight text-neutral-text">Recently Curated</h3>
-          <button 
-            onClick={() => navigate('/vault')}
-            className="text-primary text-xs font-bold uppercase tracking-widest hover:underline"
-          >
-            View Entire Vault
-          </button>
-        </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6">
-          {outfits.slice(0, 6).map(o => (
-            <div 
-              key={o.id} 
-              onClick={() => navigate('/vault')}
-              className="aspect-[3/4] rounded-2xl overflow-hidden border border-border-subtle group cursor-pointer relative shadow-card"
-            >
-              <img src={o.imageUrl} alt={o.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
-              <div className="absolute inset-0 bg-primary/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                <div className="bg-white/90 backdrop-blur px-3 py-1.5 rounded-xl border border-primary/20">
-                  <span className="text-primary font-bold text-[10px] uppercase tracking-widest">{o.rating} Rating</span>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-    </div>
+    </Layout>
   );
 };
 

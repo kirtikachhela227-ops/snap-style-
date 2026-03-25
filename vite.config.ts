@@ -14,10 +14,6 @@ export default defineConfig(({ mode }) => {
         react(),
         tailwindcss(),
       ],
-      define: {
-        'process.env.API_KEY': JSON.stringify(process.env.API_KEY || env.API_KEY || ""),
-        'import.meta.env.VITE_API_KEY': JSON.stringify(process.env.API_KEY || env.API_KEY || "")
-      },
       resolve: {
         alias: {
           '@': path.resolve(__dirname, '.'),

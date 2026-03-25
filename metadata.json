@@ -1,7 +1,5 @@
 {
-  "name": "SNAP STYLE",
-  "description": "AI-powered outfit feedback and occasion planner with style analytics and moodboard generation.",
-  "requestFramePermissions": [
-    "camera"
-  ]
+  "name": "StyleSnap – Smart Outfit Planner",
+  "description": "A clean and simple fashion outfit planner for tracking outfits, cost-per-wear, and event planning.",
+  "requestFramePermissions": []
 }

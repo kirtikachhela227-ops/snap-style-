@@ -11,13 +11,6 @@ async function startServer() {
   const PORT = 3000;
 
   // API routes FIRST
-  app.get("/api/config", (req, res) => {
-    // Return the API key from the environment
-    res.json({ 
-      apiKey: process.env.API_KEY || "" 
-    });
-  });
-
   app.get("/api/health", (req, res) => {
     res.json({ status: "ok" });
   });
