@@ -6,7 +6,7 @@ let ai: GoogleGenAI | null = null;
 let currentKey: string | null = null;
 
 const getAI = async () => {
-  let apiKey = process.env.API_KEY || process.env.GEMINI_API_KEY || (import.meta as any).env?.VITE_GEMINI_API_KEY;
+  let apiKey = process.env.API_KEY || (import.meta as any).env?.VITE_API_KEY;
   
   // Fallback: Fetch from server-side config endpoint if not found in frontend env
   if (!apiKey) {

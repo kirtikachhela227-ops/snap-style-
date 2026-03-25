@@ -24,7 +24,7 @@ const AIFeedback: React.FC<AIFeedbackProps> = ({ onSaveOutfit }) => {
 
   useEffect(() => {
     const checkKey = async () => {
-      let key = process.env.API_KEY || process.env.GEMINI_API_KEY || (import.meta as any).env?.VITE_GEMINI_API_KEY;
+      let key = process.env.API_KEY || (import.meta as any).env?.VITE_API_KEY;
       if (!key) {
         try {
           const response = await fetch('/api/config');
@@ -60,7 +60,7 @@ const AIFeedback: React.FC<AIFeedbackProps> = ({ onSaveOutfit }) => {
     
     try {
       // Re-check key status before analysis
-      let key = process.env.API_KEY || process.env.GEMINI_API_KEY || (import.meta as any).env?.VITE_GEMINI_API_KEY;
+      let key = process.env.API_KEY || (import.meta as any).env?.VITE_API_KEY;
       if (!key) {
         const response = await fetch('/api/config');
         if (response.ok) {
@@ -218,7 +218,7 @@ const AIFeedback: React.FC<AIFeedbackProps> = ({ onSaveOutfit }) => {
                       onClick={() => {
                         const checkKey = async () => {
                           setApiKeyStatus('checking');
-                          let key = process.env.API_KEY || process.env.GEMINI_API_KEY || (import.meta as any).env?.VITE_GEMINI_API_KEY;
+                          let key = process.env.API_KEY || (import.meta as any).env?.VITE_API_KEY;
                           if (!key) {
                             try {
                               const response = await fetch('/api/config');
