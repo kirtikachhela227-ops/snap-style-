@@ -2,7 +2,7 @@
 import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { StylingFeedback, Outfit, OutfitStatus } from '../types';
-import { analyzeOutfit } from '../services/gemini';
+import { analyzeOutfitWithGroq } from '../services/groq';
 
 interface AIFeedbackProps {
   onSaveOutfit: (outfit: Outfit) => void;
@@ -36,7 +36,7 @@ const AIFeedback: React.FC<AIFeedbackProps> = ({ onSaveOutfit }) => {
     setFeedback(null);
     try {
       const base64Data = preview.split(',')[1];
-      const result = await analyzeOutfit(base64Data, occasion, mood, weather);
+      const result = await analyzeOutfitWithGroq(base64Data, occasion, mood, weather);
       setFeedback(result);
     } catch (error) {
       alert("Analysis failed. Please try again.");
