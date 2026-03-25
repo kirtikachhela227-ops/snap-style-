@@ -119,18 +119,36 @@ const SUGGESTIONS: Outfit[] = [
   }
 ];
 
+const isStorageAvailable = () => {
+  try {
+    const test = '__storage_test__';
+    localStorage.setItem(test, test);
+    localStorage.removeItem(test);
+    return true;
+  } catch (e) {
+    return false;
+  }
+};
+
 const get = <T>(key: string): T[] => {
+  if (!isStorageAvailable()) return [];
   const data = localStorage.getItem(key);
   return data ? JSON.parse(data) : [];
 };
 
 const save = <T>(key: string, data: T[]) => {
-  localStorage.setItem(key, JSON.stringify(data));
+  if (!isStorageAvailable()) return;
+  try {
+    localStorage.setItem(key, JSON.stringify(data));
+  } catch (e) {
+    console.error('Storage error:', e);
+  }
 };
 
 export const storage = {
   // Auth
   getCurrentUser: (): User | null => {
+    if (!isStorageAvailable()) return null;
     const user = localStorage.getItem(USER_KEY);
     return user ? JSON.parse(user) : null;
   },
@@ -139,15 +157,22 @@ export const storage = {
     const users = get<User>(USERS_LIST_KEY);
     let user = users.find(u => u.email === email);
     if (!user) {
-      user = { id: crypto.randomUUID(), email, name: email.split('@')[0] };
+      const id = typeof crypto !== 'undefined' && crypto.randomUUID 
+        ? crypto.randomUUID() 
+        : Math.random().toString(36).substring(2, 15);
+      user = { id, email, name: email.split('@')[0] };
       save(USERS_LIST_KEY, [...users, user]);
     }
-    localStorage.setItem(USER_KEY, JSON.stringify(user));
+    if (isStorageAvailable()) {
+      localStorage.setItem(USER_KEY, JSON.stringify(user));
+    }
     return user;
   },
 
   logout: () => {
-    localStorage.removeItem(USER_KEY);
+    if (isStorageAvailable()) {
+      localStorage.removeItem(USER_KEY);
+    }
   },
 
   // Outfits
@@ -160,9 +185,12 @@ export const storage = {
 
   saveOutfit: (userId: string, outfit: Omit<Outfit, 'id' | 'user_id' | 'created_at' | 'is_suggestion'>): Outfit => {
     const outfits = get<Outfit>(OUTFITS_KEY);
+    const id = typeof crypto !== 'undefined' && crypto.randomUUID 
+      ? crypto.randomUUID() 
+      : Math.random().toString(36).substring(2, 15);
     const newOutfit: Outfit = {
       ...outfit,
-      id: crypto.randomUUID(),
+      id,
       user_id: userId,
       is_suggestion: false,
       created_at: new Date().toISOString()
