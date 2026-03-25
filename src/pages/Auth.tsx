@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { storage } from '../services/storage';
+import { useAuth } from '../services/AuthContext';
 import { Shirt, Mail, Chrome } from 'lucide-react';
 
-const Auth: React.FC<{ onLogin: (user: any) => void }> = ({ onLogin }) => {
+const Auth: React.FC = () => {
+  const { login } = useAuth();
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -11,8 +12,7 @@ const Auth: React.FC<{ onLogin: (user: any) => void }> = ({ onLogin }) => {
     setLoading(true);
     // Simulate a quick delay
     setTimeout(() => {
-      const user = storage.login(email);
-      onLogin(user);
+      login(email);
       setLoading(false);
     }, 800);
   };
@@ -43,6 +43,7 @@ const Auth: React.FC<{ onLogin: (user: any) => void }> = ({ onLogin }) => {
             />
           </div>
           <button
+            type="submit"
             disabled={loading}
             className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-black py-4 rounded-2xl shadow-xl shadow-indigo-200 transition-all flex items-center justify-center gap-2 group"
           >
@@ -60,7 +61,8 @@ const Auth: React.FC<{ onLogin: (user: any) => void }> = ({ onLogin }) => {
         </div>
 
         <button
-          onClick={() => onLogin(storage.login('google-user@demo.com'))}
+          type="button"
+          onClick={() => login('google-user@demo.com')}
           className="w-full flex items-center justify-center gap-3 py-4 border border-gray-100 rounded-2xl hover:bg-gray-50 transition-all group"
         >
           <Chrome size={20} className="text-red-500 group-hover:scale-110 transition-transform" />

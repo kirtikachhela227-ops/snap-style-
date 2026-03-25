@@ -1,15 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import { storage } from '../services/storage';
+import { useAuth } from '../services/AuthContext';
 import { Outfit } from '../types';
 import { Shirt, DollarSign, Search, Sun, Moon, Trash2, Filter } from 'lucide-react';
 import Layout from '../components/Layout';
 
 const SavedOutfits: React.FC = () => {
+  const { user } = useAuth();
   const [outfits, setOutfits] = useState<Outfit[]>([]);
   const [filteredOutfits, setFilteredOutfits] = useState<Outfit[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterOccasion, setFilterOccasion] = useState('All');
-  const user = storage.getCurrentUser();
 
   const occasions = ['All', 'College', 'Party', 'Casual', 'Wedding'];
 
@@ -55,6 +56,7 @@ const SavedOutfits: React.FC = () => {
             {occasions.map(o => (
               <button
                 key={o}
+                type="button"
                 onClick={() => setFilterOccasion(o)}
                 className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
                   filterOccasion === o
@@ -112,6 +114,7 @@ const SavedOutfits: React.FC = () => {
                     <h3 className="text-xl font-black text-gray-900 tracking-tight">{outfit.name}</h3>
                   </div>
                   <button
+                    type="button"
                     onClick={() => handleDelete(outfit.id)}
                     className="w-10 h-10 bg-gray-50 rounded-xl flex items-center justify-center text-gray-300 hover:text-red-500 hover:bg-red-50 transition-all"
                   >

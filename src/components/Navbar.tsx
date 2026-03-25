@@ -1,15 +1,15 @@
 import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { LayoutDashboard, PlusCircle, Bookmark, LogOut, Shirt } from 'lucide-react';
-import { storage } from '../services/storage';
+import { useAuth } from '../services/AuthContext';
 
 const Navbar: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const user = storage.getCurrentUser();
+  const { user, logout } = useAuth();
 
   const handleLogout = () => {
-    storage.logout();
+    logout();
     navigate('/auth');
   };
 
@@ -54,6 +54,7 @@ const Navbar: React.FC = () => {
         })}
         
         <button
+          type="button"
           onClick={handleLogout}
           className="flex flex-col items-center p-2 rounded-2xl text-gray-400 hover:bg-red-50 hover:text-red-600 transition-all md:flex-row md:gap-3 md:px-4 md:py-3.5 md:mt-auto"
         >

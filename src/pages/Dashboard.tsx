@@ -1,14 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { storage } from '../services/storage';
+import { useAuth } from '../services/AuthContext';
 import { Outfit } from '../types';
 import { Plus, Shirt, DollarSign, Sun, Moon } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Layout from '../components/Layout';
 
 const Dashboard: React.FC = () => {
+  const { user } = useAuth();
   const [suggestions, setSuggestions] = useState<Outfit[]>([]);
   const [loading, setLoading] = useState(true);
-  const user = storage.getCurrentUser();
 
   useEffect(() => {
     const data = storage.getSuggestions();

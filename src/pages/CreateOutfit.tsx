@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import { storage } from '../services/storage';
+import { useAuth } from '../services/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { Shirt, DollarSign, Tag, Palette, Save, Sun, Moon, Clock } from 'lucide-react';
 import Layout from '../components/Layout';
 
 const CreateOutfit: React.FC = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
-  const user = storage.getCurrentUser();
   const [formData, setFormData] = useState({
     name: '',
     occasion: 'College' as any,
@@ -151,8 +152,11 @@ const CreateOutfit: React.FC = () => {
                 type="number"
                 required
                 min="0"
-                value={formData.price}
-                onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) })}
+                value={isNaN(formData.price) ? '' : formData.price}
+                onChange={(e) => {
+                  const val = e.target.value === '' ? 0 : parseFloat(e.target.value);
+                  setFormData({ ...formData, price: val });
+                }}
                 className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 px-6 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all font-bold text-gray-700 text-2xl"
                 placeholder="0"
               />

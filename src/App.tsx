@@ -1,27 +1,20 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { storage } from './services/storage';
+import { AuthProvider, useAuth } from './services/AuthContext';
 import Dashboard from './pages/Dashboard';
 import CreateOutfit from './pages/CreateOutfit';
 import SavedOutfits from './pages/SavedOutfits';
 import Auth from './pages/Auth';
 
-const App: React.FC = () => {
-  const [user, setUser] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const currentUser = storage.getCurrentUser();
-    setUser(currentUser);
-    setLoading(false);
-  }, []);
+const AppContent: React.FC = () => {
+  const { user, loading } = useAuth();
 
   if (loading) return <div className="flex items-center justify-center h-screen">Loading...</div>;
 
   return (
     <Router>
       <Routes>
-        <Route path="/auth" element={!user ? <Auth onLogin={setUser} /> : <Navigate to="/" />} />
+        <Route path="/auth" element={!user ? <Auth /> : <Navigate to="/" />} />
         
         <Route path="/" element={user ? <Dashboard /> : <Navigate to="/auth" />} />
         <Route path="/create" element={user ? <CreateOutfit /> : <Navigate to="/auth" />} />
@@ -30,6 +23,14 @@ const App: React.FC = () => {
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </Router>
+  );
+};
+
+const App: React.FC = () => {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   );
 };
 
