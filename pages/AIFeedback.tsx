@@ -2,7 +2,7 @@
 import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { StylingFeedback, Outfit, OutfitStatus } from '../types';
-import { analyzeOutfitWithGroq } from '../services/groq';
+import { analyzeOutfit } from '../services/gemini';
 
 interface AIFeedbackProps {
   onSaveOutfit: (outfit: Outfit) => void;
@@ -16,6 +16,8 @@ const AIFeedback: React.FC<AIFeedbackProps> = ({ onSaveOutfit }) => {
   const [weather, setWeather] = useState('Sunny (24°C)');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [feedback, setFeedback] = useState<StylingFeedback | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -34,12 +36,13 @@ const AIFeedback: React.FC<AIFeedbackProps> = ({ onSaveOutfit }) => {
     if (!preview) return;
     setIsAnalyzing(true);
     setFeedback(null);
+    setError(null);
     try {
       const base64Data = preview.split(',')[1];
-      const result = await analyzeOutfitWithGroq(base64Data, occasion, mood, weather);
+      const result = await analyzeOutfit(base64Data, occasion, mood, weather);
       setFeedback(result);
-    } catch (error) {
-      alert("Analysis failed. Please try again.");
+    } catch (err: any) {
+      setError(err.message || "Analysis failed. Please try again.");
     } finally {
       setIsAnalyzing(false);
     }
@@ -60,8 +63,10 @@ const AIFeedback: React.FC<AIFeedbackProps> = ({ onSaveOutfit }) => {
       status: status
     });
     
-    alert(`Successfully categorized as "${status.replace('_', ' ').toUpperCase()}" and added to vault.`);
-    navigate('/vault');
+    setSuccessMessage(`Successfully categorized as "${status.replace('_', ' ').toUpperCase()}" and added to vault.`);
+    setTimeout(() => {
+      navigate('/vault');
+    }, 2000);
   };
 
   const isMatchNegative = feedback?.matchStatus?.toUpperCase().includes('NO');
@@ -163,6 +168,20 @@ const AIFeedback: React.FC<AIFeedbackProps> = ({ onSaveOutfit }) => {
               <span className="material-icons-round text-xl">{isAnalyzing ? 'loop' : 'auto_awesome'}</span>
               <span>{isAnalyzing ? 'Analyzing Look...' : 'Get Instant Critique'}</span>
             </button>
+
+            {error && (
+              <div className="p-4 bg-rose-50 border border-rose-100 rounded-xl flex items-start gap-3 animate-in fade-in slide-in-from-top-2">
+                <span className="material-icons-round text-rose-500 text-lg">error_outline</span>
+                <p className="text-xs text-rose-600 font-medium leading-relaxed">{error}</p>
+              </div>
+            )}
+
+            {successMessage && (
+              <div className="p-4 bg-emerald-50 border border-emerald-100 rounded-xl flex items-start gap-3 animate-in fade-in slide-in-from-top-2">
+                <span className="material-icons-round text-emerald-500 text-lg">check_circle_outline</span>
+                <p className="text-xs text-emerald-600 font-medium leading-relaxed">{successMessage}</p>
+              </div>
+            )}
           </div>
         </section>
 
@@ -173,7 +192,7 @@ const AIFeedback: React.FC<AIFeedbackProps> = ({ onSaveOutfit }) => {
               <div className="p-8 lg:p-10 border-b border-border-subtle bg-background-alt/50 flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div>
                   <h2 className="text-2xl font-bold text-neutral-text mb-1 tracking-tight">Style Intelligence Report</h2>
-                  <p className="text-neutral-muted text-sm font-medium">Processed by Groq AI Engine</p>
+                  <p className="text-neutral-muted text-sm font-medium">Processed by Gemini 3 Core Engine</p>
                 </div>
                 <div className="flex items-center gap-4 bg-white p-2.5 pr-6 rounded-2xl border border-border-subtle shadow-sm">
                   <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${isMatchNegative ? 'bg-rose-500/10 text-rose-600' : 'bg-emerald-500/10 text-emerald-600'}`}>

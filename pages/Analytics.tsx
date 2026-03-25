@@ -67,8 +67,8 @@ const Analytics: React.FC<AnalyticsProps> = ({ outfits }) => {
               <p className="text-[11px] font-bold text-neutral-muted uppercase tracking-widest mt-1">Consistency Trend over 5 weeks</p>
             </div>
           </div>
-          <div className="h-72">
-            <ResponsiveContainer width="100%" height="100%">
+          <div className="h-72 min-h-[300px]">
+            <ResponsiveContainer width="100%" height="100%" minHeight={300}>
               <AreaChart data={data} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
                 <defs>
                   <linearGradient id="colorPrimary" x1="0" y1="0" x2="0" y2="1">
