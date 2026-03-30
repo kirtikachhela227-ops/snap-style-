@@ -23,6 +23,12 @@ const Auth: React.FC = () => {
   const [name, setName] = useState('');
   const [resetSent, setResetSent] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
+  const [isIframe, setIsIframe] = useState(false);
+
+  useEffect(() => {
+    // Detect if we are in an iframe
+    setIsIframe(window.self !== window.top);
+  }, []);
 
   // Safety Redirect: If user is detected, force them to dashboard
   useEffect(() => {
@@ -44,8 +50,9 @@ const Auth: React.FC = () => {
         setError('Domain not authorized! Please add your Vercel URL to "Authorized domains" in the Firebase Console.');
       } else if (err.code === 'auth/popup-closed-by-user') {
         setError('Login popup was closed. Please try again.');
-      } else if (err.message?.includes('Cross-Origin-Opener-Policy')) {
-        setError('Security policy blocked the login. Please use the "Open in New Tab" button below.');
+      } else if (err.message?.includes('Cross-Origin-Opener-Policy') || isIframe) {
+        setError('Security policy blocked the login. This happens in the preview window. Please use the "Open in New Tab" button below.');
+        setShowHelp(true);
       } else {
         setError(err.message || 'An error occurred during Google authentication');
       }
@@ -78,13 +85,20 @@ const Auth: React.FC = () => {
       if (err.code === 'auth/user-not-found') message = 'No account found. Please check your email or Sign Up.';
       if (err.code === 'auth/wrong-password') message = 'Incorrect password. Please try again.';
       if (err.code === 'auth/invalid-credential') {
-        message = 'Login failed. If you usually use Google, please use the "Google Account" button below.';
+        message = 'Login failed. If you usually use Google, please use the "Google Account" button below. (Note: Password login won\'t work if you signed up with Google)';
       }
       if (err.code === 'auth/email-already-in-use') {
-        message = 'This email is already in use. Try signing in instead.';
+        message = 'This email is already registered. Please switch to "Sign In" or use Google.';
+        setIsLogin(true); // Auto-switch to login mode
       }
       if (err.code === 'auth/weak-password') message = 'Password should be at least 6 characters.';
       if (err.code === 'auth/invalid-email') message = 'Please enter a valid email address.';
+      
+      // If we see COOP or generic errors in an iframe, suggest new tab
+      if (isIframe || err.message?.includes('cross-origin')) {
+        setShowHelp(true);
+      }
+      
       setError(message);
     } finally {
       setLoading(false);
@@ -128,6 +142,13 @@ const Auth: React.FC = () => {
         <p className="text-gray-500 text-sm font-medium mb-8">
           {isLogin ? 'Welcome back! Sign in to continue.' : 'Create an account to start styling.'}
         </p>
+
+        {isIframe && !showHelp && !error && (
+          <div className="mb-6 p-3 bg-amber-50 border border-amber-100 rounded-xl text-[10px] text-amber-700 font-medium flex items-center gap-2">
+            <AlertTriangle size={14} className="shrink-0" />
+            <span>Running in preview mode. If login fails, click the "?" icon.</span>
+          </div>
+        )}
 
         {showHelp && (
           <div className="bg-indigo-50 text-indigo-700 p-5 rounded-3xl mb-8 text-left text-xs leading-relaxed border-2 border-indigo-100 shadow-sm">
