@@ -20,26 +20,37 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       try {
         if (firebaseUser) {
-          // Fetch user profile from Firestore
-          const profile = await storage.getUserProfile(firebaseUser.uid);
-          if (profile) {
-            setUser(profile);
-          } else {
-            // If profile doesn't exist (e.g. first time login with provider), create it
-            const newUser: User = {
+          try {
+            // Fetch user profile from Firestore
+            const profile = await storage.getUserProfile(firebaseUser.uid);
+            if (profile) {
+              setUser(profile);
+            } else {
+              // If profile doesn't exist (e.g. first time login with provider), create it
+              const newUser: User = {
+                id: firebaseUser.uid,
+                email: firebaseUser.email || '',
+                name: firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'User'
+              };
+              await storage.saveUserProfile(newUser);
+              setUser(newUser);
+            }
+          } catch (firestoreError) {
+            console.error('Firestore profile fetch failed, using fallback:', firestoreError);
+            // Fallback to basic info from Firebase Auth if Firestore is unreachable
+            const fallbackUser: User = {
               id: firebaseUser.uid,
               email: firebaseUser.email || '',
               name: firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'User'
             };
-            await storage.saveUserProfile(newUser);
-            setUser(newUser);
+            console.log('Bypassing Firestore error, logging in with fallback:', fallbackUser);
+            setUser(fallbackUser);
           }
         } else {
           setUser(null);
         }
       } catch (error) {
         console.error('Auth state change error:', error);
-        // Even if Firestore fails, we should clear loading
         setUser(null);
       } finally {
         setLoading(false);

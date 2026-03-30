@@ -195,7 +195,8 @@ export const storage = {
   getUserProfile: async (userId: string): Promise<User | null> => {
     const path = `users/${userId}`;
     try {
-      const userDoc = await getDoc(doc(db, 'users', userId));
+      // Use getDocFromServer to force a network request and bypass cache
+      const userDoc = await getDocFromServer(doc(db, 'users', userId));
       return userDoc.exists() ? (userDoc.data() as User) : null;
     } catch (error) {
       handleFirestoreError(error, OperationType.GET, path);

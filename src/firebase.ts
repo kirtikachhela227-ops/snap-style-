@@ -16,9 +16,9 @@ const firebaseConfig = {
 // Initialize Firebase SDK
 const app = initializeApp(firebaseConfig);
 
-// Use initializeFirestore to enable experimentalForceLongPolling
-// This helps in environments where standard WebChannel connections are blocked
-const firestoreDbId = import.meta.env.VITE_FIREBASE_FIRESTORE_DATABASE_ID || firebaseConfigJson.firestoreDatabaseId;
+// Use initializeFirestore with aggressive settings to fix 'client is offline'
+const firestoreDbId = import.meta.env.VITE_FIREBASE_FIRESTORE_DATABASE_ID || firebaseConfigJson.firestoreDatabaseId || '(default)';
+
 export const db = initializeFirestore(app, {
   experimentalForceLongPolling: true,
 }, firestoreDbId);
