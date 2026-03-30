@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { auth } from '../firebase';
 import { 
   signInWithPopup, 
@@ -8,9 +8,13 @@ import {
   sendPasswordResetEmail,
   updateProfile
 } from 'firebase/auth';
-import { Shirt, Chrome, Mail, Lock, User as UserIcon, ArrowRight, HelpCircle, AlertTriangle } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../services/AuthContext';
+import { Shirt, Chrome, Mail, Lock, User as UserIcon, ArrowRight, HelpCircle, AlertTriangle, ExternalLink } from 'lucide-react';
 
 const Auth: React.FC = () => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isLogin, setIsLogin] = useState(true);
@@ -19,6 +23,14 @@ const Auth: React.FC = () => {
   const [name, setName] = useState('');
   const [resetSent, setResetSent] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
+
+  // Safety Redirect: If user is detected, force them to dashboard
+  useEffect(() => {
+    if (user) {
+      console.log('User detected in Auth page, forcing redirect to dashboard...');
+      navigate('/');
+    }
+  }, [user, navigate]);
 
   const handleGoogleLogin = async () => {
     setLoading(true);
@@ -32,6 +44,8 @@ const Auth: React.FC = () => {
         setError('Domain not authorized! Please add your Vercel URL to "Authorized domains" in the Firebase Console.');
       } else if (err.code === 'auth/popup-closed-by-user') {
         setError('Login popup was closed. Please try again.');
+      } else if (err.message?.includes('Cross-Origin-Opener-Policy')) {
+        setError('Security policy blocked the login. Please use the "Open in New Tab" button below.');
       } else {
         setError(err.message || 'An error occurred during Google authentication');
       }
@@ -61,13 +75,13 @@ const Auth: React.FC = () => {
     } catch (err: any) {
       console.error('Email Auth error:', err);
       let message = err.message;
-      if (err.code === 'auth/user-not-found') message = 'No account found with this email.';
-      if (err.code === 'auth/wrong-password') message = 'Incorrect password.';
+      if (err.code === 'auth/user-not-found') message = 'No account found. Please check your email or Sign Up.';
+      if (err.code === 'auth/wrong-password') message = 'Incorrect password. Please try again.';
       if (err.code === 'auth/invalid-credential') {
-        message = 'Invalid email or password. If you usually use Google, please click "Google Account" below.';
+        message = 'Login failed. If you usually use Google, please use the "Google Account" button below.';
       }
       if (err.code === 'auth/email-already-in-use') {
-        message = 'An account already exists. Try "Sign In" instead of "Sign Up".';
+        message = 'This email is already in use. Try signing in instead.';
       }
       if (err.code === 'auth/weak-password') message = 'Password should be at least 6 characters.';
       if (err.code === 'auth/invalid-email') message = 'Please enter a valid email address.';
@@ -116,31 +130,28 @@ const Auth: React.FC = () => {
         </p>
 
         {showHelp && (
-          <div className="bg-indigo-50 text-indigo-700 p-4 rounded-2xl mb-6 text-left text-xs leading-relaxed border border-indigo-100">
-            <div className="flex items-center gap-2 mb-2 font-bold uppercase tracking-wider">
-              <AlertTriangle size={14} />
-              Troubleshooting
+          <div className="bg-indigo-50 text-indigo-700 p-5 rounded-3xl mb-8 text-left text-xs leading-relaxed border-2 border-indigo-100 shadow-sm">
+            <div className="flex items-center gap-2 mb-3 font-black uppercase tracking-wider text-indigo-600">
+              <AlertTriangle size={16} />
+              Login Issues?
             </div>
-            <ul className="space-y-2 list-disc pl-4 mb-4">
-              <li><strong>Google Login stuck?</strong> Ensure your domain is added to "Authorized domains" in Firebase Console.</li>
-              <li><strong>Popup blocked?</strong> Check your browser's address bar for a popup blocker icon.</li>
-              <li><strong>COOP Errors?</strong> These are common in iframes. Try opening the app in a new tab.</li>
-              <li><strong>Still failing?</strong> Use the manual Email/Password option below.</li>
-            </ul>
+            <p className="mb-4 font-medium">If Google login is getting stuck or showing errors, click the button below to open the app in a new tab. This fixes most security blocks.</p>
             <a 
               href={window.location.href} 
               target="_blank" 
               rel="noopener noreferrer"
-              className="block w-full bg-indigo-600 text-white text-center py-2 rounded-xl font-bold hover:bg-indigo-700 transition-colors"
+              className="flex items-center justify-center gap-2 w-full bg-indigo-600 text-white text-center py-3 rounded-xl font-black hover:bg-indigo-700 transition-all shadow-md active:scale-95"
             >
-              Open in New Tab
+              <ExternalLink size={16} />
+              FIX LOGIN: OPEN IN NEW TAB
             </a>
           </div>
         )}
 
         {error && (
-          <div className="bg-red-50 text-red-600 p-3 rounded-xl mb-6 text-xs font-bold border border-red-100">
-            {error}
+          <div className="bg-red-50 text-red-600 p-4 rounded-2xl mb-6 text-xs font-bold border border-red-100 flex items-start gap-2 text-left">
+            <AlertTriangle size={16} className="shrink-0" />
+            <span>{error}</span>
           </div>
         )}
 
