@@ -18,7 +18,11 @@ const Auth: React.FC = () => {
       await signInWithPopup(auth, provider);
     } catch (err: any) {
       console.error('Google Auth error:', err);
-      setError(err.message || 'An error occurred during Google authentication');
+      if (err.code === 'auth/unauthorized-domain') {
+        setError('This domain is not authorized in Firebase. Please add your Vercel URL to "Authorized domains" in the Firebase Console.');
+      } else {
+        setError(err.message || 'An error occurred during Google authentication');
+      }
     } finally {
       setLoading(false);
     }

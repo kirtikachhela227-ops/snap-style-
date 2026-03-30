@@ -1,6 +1,6 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
+import { initializeFirestore } from 'firebase/firestore';
 import firebaseConfigJson from '../firebase-applet-config.json';
 
 // Firebase configuration using environment variables with local fallbacks
@@ -15,8 +15,14 @@ const firebaseConfig = {
 
 // Initialize Firebase SDK
 const app = initializeApp(firebaseConfig);
+
+// Use initializeFirestore to enable experimentalForceLongPolling
+// This helps in environments where standard WebChannel connections are blocked
 const firestoreDbId = import.meta.env.VITE_FIREBASE_FIRESTORE_DATABASE_ID || firebaseConfigJson.firestoreDatabaseId;
-export const db = getFirestore(app, firestoreDbId);
+export const db = initializeFirestore(app, {
+  experimentalForceLongPolling: true,
+}, firestoreDbId);
+
 export const auth = getAuth(app);
 
 export default app;

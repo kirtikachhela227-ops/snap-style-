@@ -18,25 +18,32 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      if (firebaseUser) {
-        // Fetch user profile from Firestore
-        const profile = await storage.getUserProfile(firebaseUser.uid);
-        if (profile) {
-          setUser(profile);
+      try {
+        if (firebaseUser) {
+          // Fetch user profile from Firestore
+          const profile = await storage.getUserProfile(firebaseUser.uid);
+          if (profile) {
+            setUser(profile);
+          } else {
+            // If profile doesn't exist (e.g. first time login with provider), create it
+            const newUser: User = {
+              id: firebaseUser.uid,
+              email: firebaseUser.email || '',
+              name: firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'User'
+            };
+            await storage.saveUserProfile(newUser);
+            setUser(newUser);
+          }
         } else {
-          // If profile doesn't exist (e.g. first time login with provider), create it
-          const newUser: User = {
-            id: firebaseUser.uid,
-            email: firebaseUser.email || '',
-            name: firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'User'
-          };
-          await storage.saveUserProfile(newUser);
-          setUser(newUser);
+          setUser(null);
         }
-      } else {
+      } catch (error) {
+        console.error('Auth state change error:', error);
+        // Even if Firestore fails, we should clear loading
         setUser(null);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     });
 
     return () => unsubscribe();
