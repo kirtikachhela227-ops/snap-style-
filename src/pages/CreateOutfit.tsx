@@ -24,13 +24,13 @@ const CreateOutfit: React.FC = () => {
   const occasions = ['College', 'Party', 'Casual', 'Wedding'];
   const times = ['Day', 'Night'];
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
     setLoading(true);
     
     try {
-      storage.saveOutfit(user.id, formData);
+      await storage.saveOutfit(user.id, formData);
       navigate('/saved');
     } catch (err: any) {
       console.error(err.message);

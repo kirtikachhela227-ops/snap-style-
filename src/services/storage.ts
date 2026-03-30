@@ -1,8 +1,67 @@
 import { Outfit, User } from '../types';
+import { db, auth } from '../firebase';
+import { 
+  collection, 
+  doc, 
+  setDoc, 
+  getDoc, 
+  getDocs, 
+  query, 
+  where, 
+  deleteDoc,
+  getDocFromServer
+} from 'firebase/firestore';
 
-const OUTFITS_KEY = 'stylesnap_outfits';
-const USER_KEY = 'stylesnap_current_user';
-const USERS_LIST_KEY = 'stylesnap_users';
+enum OperationType {
+  CREATE = 'create',
+  UPDATE = 'update',
+  DELETE = 'delete',
+  LIST = 'list',
+  GET = 'get',
+  WRITE = 'write',
+}
+
+interface FirestoreErrorInfo {
+  error: string;
+  operationType: OperationType;
+  path: string | null;
+  authInfo: {
+    userId: string | undefined;
+    email: string | null | undefined;
+    emailVerified: boolean | undefined;
+    isAnonymous: boolean | undefined;
+    tenantId: string | null | undefined;
+    providerInfo: {
+      providerId: string;
+      displayName: string | null;
+      email: string | null;
+      photoUrl: string | null;
+    }[];
+  }
+}
+
+function handleFirestoreError(error: unknown, operationType: OperationType, path: string | null) {
+  const errInfo: FirestoreErrorInfo = {
+    error: error instanceof Error ? error.message : String(error),
+    authInfo: {
+      userId: auth.currentUser?.uid,
+      email: auth.currentUser?.email,
+      emailVerified: auth.currentUser?.emailVerified,
+      isAnonymous: auth.currentUser?.isAnonymous,
+      tenantId: auth.currentUser?.tenantId,
+      providerInfo: auth.currentUser?.providerData.map(provider => ({
+        providerId: provider.providerId,
+        displayName: provider.displayName,
+        email: provider.email,
+        photoUrl: provider.photoURL
+      })) || []
+    },
+    operationType,
+    path
+  };
+  console.error('Firestore Error: ', JSON.stringify(errInfo));
+  throw new Error(JSON.stringify(errInfo));
+}
 
 const SUGGESTIONS: Outfit[] = [
   {
@@ -119,75 +178,58 @@ const SUGGESTIONS: Outfit[] = [
   }
 ];
 
-const isStorageAvailable = () => {
+// Connection test
+async function testConnection() {
   try {
-    const test = '__storage_test__';
-    localStorage.setItem(test, test);
-    localStorage.removeItem(test);
-    return true;
-  } catch (e) {
-    return false;
+    await getDocFromServer(doc(db, 'test', 'connection'));
+  } catch (error) {
+    if(error instanceof Error && error.message.includes('the client is offline')) {
+      console.error("Please check your Firebase configuration. ");
+    }
   }
-};
-
-const get = <T>(key: string): T[] => {
-  if (!isStorageAvailable()) return [];
-  const data = localStorage.getItem(key);
-  return data ? JSON.parse(data) : [];
-};
-
-const save = <T>(key: string, data: T[]) => {
-  if (!isStorageAvailable()) return;
-  try {
-    localStorage.setItem(key, JSON.stringify(data));
-  } catch (e) {
-    console.error('Storage error:', e);
-  }
-};
+}
+testConnection();
 
 export const storage = {
-  // Auth
-  getCurrentUser: (): User | null => {
-    if (!isStorageAvailable()) return null;
-    const user = localStorage.getItem(USER_KEY);
-    return user ? JSON.parse(user) : null;
+  // Users
+  getUserProfile: async (userId: string): Promise<User | null> => {
+    const path = `users/${userId}`;
+    try {
+      const userDoc = await getDoc(doc(db, 'users', userId));
+      return userDoc.exists() ? (userDoc.data() as User) : null;
+    } catch (error) {
+      handleFirestoreError(error, OperationType.GET, path);
+      return null;
+    }
   },
 
-  login: (email: string): User => {
-    const users = get<User>(USERS_LIST_KEY);
-    let user = users.find(u => u.email === email);
-    if (!user) {
-      const id = typeof crypto !== 'undefined' && crypto.randomUUID 
-        ? crypto.randomUUID() 
-        : Math.random().toString(36).substring(2, 15);
-      user = { id, email, name: email.split('@')[0] };
-      save(USERS_LIST_KEY, [...users, user]);
-    }
-    if (isStorageAvailable()) {
-      localStorage.setItem(USER_KEY, JSON.stringify(user));
-    }
-    return user;
-  },
-
-  logout: () => {
-    if (isStorageAvailable()) {
-      localStorage.removeItem(USER_KEY);
+  saveUserProfile: async (user: User): Promise<void> => {
+    const path = `users/${user.id}`;
+    try {
+      await setDoc(doc(db, 'users', user.id), user);
+    } catch (error) {
+      handleFirestoreError(error, OperationType.WRITE, path);
     }
   },
 
   // Outfits
   getSuggestions: (): Outfit[] => SUGGESTIONS,
 
-  getSavedOutfits: (userId: string): Outfit[] => {
-    const outfits = get<Outfit>(OUTFITS_KEY);
-    return outfits.filter(o => o.user_id === userId);
+  getSavedOutfits: async (userId: string): Promise<Outfit[]> => {
+    const path = 'outfits';
+    try {
+      const q = query(collection(db, 'outfits'), where('user_id', '==', userId));
+      const querySnapshot = await getDocs(q);
+      return querySnapshot.docs.map(doc => doc.data() as Outfit);
+    } catch (error) {
+      handleFirestoreError(error, OperationType.LIST, path);
+      return [];
+    }
   },
 
-  saveOutfit: (userId: string, outfit: Omit<Outfit, 'id' | 'user_id' | 'created_at' | 'is_suggestion'>): Outfit => {
-    const outfits = get<Outfit>(OUTFITS_KEY);
-    const id = typeof crypto !== 'undefined' && crypto.randomUUID 
-      ? crypto.randomUUID() 
-      : Math.random().toString(36).substring(2, 15);
+  saveOutfit: async (userId: string, outfit: Omit<Outfit, 'id' | 'user_id' | 'created_at' | 'is_suggestion'>): Promise<Outfit> => {
+    const id = crypto.randomUUID();
+    const path = `outfits/${id}`;
     const newOutfit: Outfit = {
       ...outfit,
       id,
@@ -195,12 +237,21 @@ export const storage = {
       is_suggestion: false,
       created_at: new Date().toISOString()
     };
-    save(OUTFITS_KEY, [newOutfit, ...outfits]);
-    return newOutfit;
+    try {
+      await setDoc(doc(db, 'outfits', id), newOutfit);
+      return newOutfit;
+    } catch (error) {
+      handleFirestoreError(error, OperationType.WRITE, path);
+      throw error;
+    }
   },
 
-  deleteOutfit: (id: string) => {
-    const outfits = get<Outfit>(OUTFITS_KEY);
-    save(OUTFITS_KEY, outfits.filter(o => o.id !== id));
+  deleteOutfit: async (id: string): Promise<void> => {
+    const path = `outfits/${id}`;
+    try {
+      await deleteDoc(doc(db, 'outfits', id));
+    } catch (error) {
+      handleFirestoreError(error, OperationType.DELETE, path);
+    }
   }
 };

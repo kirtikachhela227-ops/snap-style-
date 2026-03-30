@@ -15,12 +15,16 @@ const SavedOutfits: React.FC = () => {
   const occasions = ['All', 'College', 'Party', 'Casual', 'Wedding'];
 
   useEffect(() => {
-    if (user) {
-      const data = storage.getSavedOutfits(user.id);
-      setOutfits(data);
-      setFilteredOutfits(data);
-    }
-    setLoading(false);
+    const fetchData = async () => {
+      if (user) {
+        setLoading(true);
+        const data = await storage.getSavedOutfits(user.id);
+        setOutfits(data);
+        setFilteredOutfits(data);
+        setLoading(false);
+      }
+    };
+    fetchData();
   }, [user]);
 
   useEffect(() => {
@@ -31,10 +35,14 @@ const SavedOutfits: React.FC = () => {
     setFilteredOutfits(result);
   }, [filterOccasion, outfits]);
 
-  const handleDelete = (id: string) => {
-    storage.deleteOutfit(id);
-    const updated = outfits.filter(o => o.id !== id);
-    setOutfits(updated);
+  const handleDelete = async (id: string) => {
+    try {
+      await storage.deleteOutfit(id);
+      const updated = outfits.filter(o => o.id !== id);
+      setOutfits(updated);
+    } catch (err) {
+      console.error('Delete error:', err);
+    }
   };
 
   if (loading) return <div className="flex items-center justify-center h-screen">Loading...</div>;

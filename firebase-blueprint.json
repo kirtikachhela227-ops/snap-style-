@@ -1,0 +1,47 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile information",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "name": { "type": "string" },
+        "role": { "type": "string", "enum": ["admin", "user"] }
+      },
+      "required": ["id", "email", "name"]
+    },
+    "Outfit": {
+      "title": "Outfit",
+      "description": "User created or suggested outfit",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "occasion": { "type": "string", "enum": ["College", "Party", "Casual", "Wedding"] },
+        "time": { "type": "string", "enum": ["Day", "Night"] },
+        "top": { "type": "string" },
+        "bottom": { "type": "string" },
+        "footwear": { "type": "string" },
+        "color": { "type": "string" },
+        "price": { "type": "number" },
+        "user_id": { "type": "string" },
+        "is_suggestion": { "type": "boolean" },
+        "imageUrl": { "type": "string", "format": "uri" },
+        "created_at": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "name", "occasion", "time", "top", "bottom", "footwear", "color", "price", "created_at"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profile documents"
+    },
+    "/outfits/{outfitId}": {
+      "schema": "Outfit",
+      "description": "Outfit documents"
+    }
+  }
+}

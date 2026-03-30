@@ -1,20 +1,27 @@
 import React, { useState } from 'react';
-import { useAuth } from '../services/AuthContext';
-import { Shirt, Mail, Chrome } from 'lucide-react';
+import { auth } from '../firebase';
+import { 
+  signInWithPopup, 
+  GoogleAuthProvider 
+} from 'firebase/auth';
+import { Shirt, Chrome } from 'lucide-react';
 
 const Auth: React.FC = () => {
-  const { login } = useAuth();
-  const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleAuth = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleGoogleLogin = async () => {
     setLoading(true);
-    // Simulate a quick delay
-    setTimeout(() => {
-      login(email);
+    setError(null);
+    const provider = new GoogleAuthProvider();
+    try {
+      await signInWithPopup(auth, provider);
+    } catch (err: any) {
+      console.error('Google Auth error:', err);
+      setError(err.message || 'An error occurred during Google authentication');
+    } finally {
       setLoading(false);
-    }, 800);
+    }
   };
 
   return (
@@ -30,44 +37,29 @@ const Auth: React.FC = () => {
           Sign in to start styling.
         </p>
 
-        <form onSubmit={handleAuth} className="space-y-4 mb-10">
-          <div className="relative">
-            <Mail className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-            <input
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Enter your email"
-              className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 pl-14 pr-6 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all font-bold text-gray-700"
-            />
+        {error && (
+          <div className="bg-red-50 text-red-600 p-4 rounded-2xl mb-6 text-sm font-bold">
+            {error}
           </div>
+        )}
+
+        <div className="space-y-6">
           <button
-            type="submit"
+            type="button"
+            onClick={handleGoogleLogin}
             disabled={loading}
-            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-black py-4 rounded-2xl shadow-xl shadow-indigo-200 transition-all flex items-center justify-center gap-2 group"
+            className="w-full flex items-center justify-center gap-4 py-5 bg-white border-2 border-gray-100 rounded-2xl hover:border-indigo-500 hover:bg-indigo-50 transition-all group shadow-sm"
           >
-            {loading ? 'Signing in...' : 'Continue with Email'}
+            <Chrome size={24} className="text-red-500 group-hover:scale-110 transition-transform" />
+            <span className="font-black text-gray-700 text-lg">
+              {loading ? 'Connecting...' : 'Continue with Google'}
+            </span>
           </button>
-        </form>
-
-        <div className="relative mb-10">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-gray-100"></div>
-          </div>
-          <div className="relative flex justify-center text-xs font-black uppercase tracking-widest text-gray-400">
-            <span className="bg-white px-4">Or continue with</span>
-          </div>
+          
+          <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">
+            Secure login powered by Firebase
+          </p>
         </div>
-
-        <button
-          type="button"
-          onClick={() => login('google-user@demo.com')}
-          className="w-full flex items-center justify-center gap-3 py-4 border border-gray-100 rounded-2xl hover:bg-gray-50 transition-all group"
-        >
-          <Chrome size={20} className="text-red-500 group-hover:scale-110 transition-transform" />
-          <span className="font-bold text-gray-700">Google Login</span>
-        </button>
       </div>
     </div>
   );
