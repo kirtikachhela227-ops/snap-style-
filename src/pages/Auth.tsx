@@ -11,7 +11,7 @@ import { useAuth } from '../services/AuthContext';
 import { Shirt, Mail, Lock, User as UserIcon, ArrowRight, AlertTriangle } from 'lucide-react';
 
 const Auth: React.FC = () => {
-  const { user } = useAuth();
+  const { user, skipLogin } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -35,6 +35,7 @@ const Auth: React.FC = () => {
     setError(null);
 
     try {
+      console.log(`Attempting ${isLogin ? 'Sign In' : 'Sign Up'} for:`, email);
       if (isLogin) {
         await signInWithEmailAndPassword(auth, email, password);
       } else {
@@ -47,17 +48,22 @@ const Auth: React.FC = () => {
           displayName: name
         });
       }
+      console.log('Authentication successful!');
     } catch (err: any) {
-      console.error('Email Auth error:', err);
+      console.error('Email Auth error details:', err.code, err.message);
       let message = err.message;
-      if (err.code === 'auth/user-not-found') message = 'No account found. Please check your email or Sign Up.';
-      if (err.code === 'auth/wrong-password') message = 'Incorrect password. Please try again.';
+      if (err.code === 'auth/user-not-found') {
+        message = 'No account found with this email. Did you mean to Sign Up?';
+      }
+      if (err.code === 'auth/wrong-password') {
+        message = 'Incorrect password. Please try again or reset your password.';
+      }
       if (err.code === 'auth/invalid-credential') {
-        message = 'Login failed. Please check your credentials.';
+        message = 'Login failed. This usually means the email or password is incorrect. If you previously used Google to sign in, you may need to "Sign Up" first to create a password for this email, or use "Forgot Password" to set one.';
       }
       if (err.code === 'auth/email-already-in-use') {
-        message = 'This email is already registered. Please switch to "Sign In".';
-        setIsLogin(true); // Auto-switch to login mode
+        message = 'This email is already registered. Please Sign In instead.';
+        setIsLogin(true);
       }
       if (err.code === 'auth/weak-password') message = 'Password should be at least 6 characters.';
       if (err.code === 'auth/invalid-email') message = 'Please enter a valid email address.';
@@ -102,6 +108,24 @@ const Auth: React.FC = () => {
             <div className="flex items-start gap-2">
               <AlertTriangle size={16} className="shrink-0" />
               <span>{error}</span>
+            </div>
+            <div className="flex gap-2">
+              {isLogin && !error.includes('already registered') && (
+                <button 
+                  onClick={() => { setIsLogin(false); setError(null); }}
+                  className="bg-red-600 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-red-700 transition-all w-fit"
+                >
+                  Switch to Sign Up
+                </button>
+              )}
+              {isLogin && (
+                <button 
+                  onClick={handleForgotPassword}
+                  className="bg-white text-red-600 border border-red-200 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-red-50 transition-all w-fit"
+                >
+                  Reset Password
+                </button>
+              )}
             </div>
           </div>
         )}
@@ -181,6 +205,17 @@ const Auth: React.FC = () => {
           >
             {isLogin ? "Don't have an account? Sign Up" : "Already have an account? Sign In"}
           </button>
+
+          <div className="pt-4 border-t border-gray-100 mt-4">
+            <button
+              type="button"
+              onClick={skipLogin}
+              className="text-xs font-black text-indigo-600 hover:text-indigo-700 uppercase tracking-widest flex items-center gap-2 mx-auto"
+            >
+              Skip for now (Guest Mode)
+              <ArrowRight size={14} />
+            </button>
+          </div>
         </div>
       </div>
     </div>

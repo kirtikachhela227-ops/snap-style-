@@ -7,6 +7,7 @@ import { User } from '../types';
 interface AuthContextType {
   user: User | null;
   logout: () => Promise<void>;
+  skipLogin: () => void;
   loading: boolean;
 }
 
@@ -73,8 +74,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const skipLogin = () => {
+    const guestUser: User = {
+      id: 'guest_user',
+      email: 'guest@example.com',
+      name: 'Guest User'
+    };
+    setUser(guestUser);
+  };
+
   return (
-    <AuthContext.Provider value={{ user, logout, loading }}>
+    <AuthContext.Provider value={{ user, logout, skipLogin, loading }}>
       {children}
     </AuthContext.Provider>
   );
