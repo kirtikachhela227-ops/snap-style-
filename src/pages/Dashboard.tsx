@@ -25,13 +25,6 @@ const Dashboard: React.FC = () => {
         <div>
           <h1 className="text-4xl font-black text-gray-900 tracking-tight mb-2">Hello, {user?.name}!</h1>
           <p className="text-gray-500 font-medium">Here are some fresh outfit suggestions for you today.</p>
-          {user?.id === 'guest_user' && (
-            <div className="mt-4 p-3 bg-amber-50 border border-amber-100 rounded-xl text-xs text-amber-700 font-bold flex items-center gap-2 w-fit">
-              <Sun size={14} className="shrink-0" />
-              <span>Guest Mode: Your data will be saved locally for this session.</span>
-              <Link to="/auth" className="underline ml-2 hover:text-amber-800">Sign in to save permanently</Link>
-            </div>
-          )}
         </div>
         <Link
           to="/create"

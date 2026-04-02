@@ -20,7 +20,7 @@ const app = initializeApp(firebaseConfig);
 const firestoreDbId = import.meta.env.VITE_FIREBASE_FIRESTORE_DATABASE_ID || firebaseConfigJson.firestoreDatabaseId || '(default)';
 
 export const db = initializeFirestore(app, {
-  experimentalAutoDetectLongPolling: true,
+  experimentalForceLongPolling: true,
 }, firestoreDbId);
 
 export const auth = getAuth(app);

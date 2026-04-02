@@ -37,13 +37,11 @@ service cloud.firestore {
     // ===============================================================
     
     function isAuthenticated() {
-      return request.auth != null || 
-             (request.resource.data != null && (request.resource.data.user_id == 'guest_user' || request.resource.data.id == 'guest_user')) || 
-             (resource != null && (resource.data.user_id == 'guest_user' || resource.data.id == 'guest_user'));
+      return request.auth != null;
     }
 
     function isOwner(userId) {
-      return (isAuthenticated() && request.auth != null && request.auth.uid == userId) || userId == 'guest_user';
+      return isAuthenticated() && request.auth.uid == userId;
     }
 
     function isAdmin() {

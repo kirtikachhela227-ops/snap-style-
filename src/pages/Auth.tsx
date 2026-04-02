@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { auth } from '../firebase';
 import { 
-  signInWithPopup, 
-  GoogleAuthProvider,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   sendPasswordResetEmail,
@@ -10,10 +8,10 @@ import {
 } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../services/AuthContext';
-import { Shirt, Chrome, Mail, Lock, User as UserIcon, ArrowRight, HelpCircle, AlertTriangle, ExternalLink } from 'lucide-react';
+import { Shirt, Mail, Lock, User as UserIcon, ArrowRight, AlertTriangle } from 'lucide-react';
 
 const Auth: React.FC = () => {
-  const { user, skipLogin } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -22,13 +20,6 @@ const Auth: React.FC = () => {
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [resetSent, setResetSent] = useState(false);
-  const [showHelp, setShowHelp] = useState(false);
-  const [isIframe, setIsIframe] = useState(false);
-
-  useEffect(() => {
-    // Detect if we are in an iframe
-    setIsIframe(window.self !== window.top);
-  }, []);
 
   // Safety Redirect: If user is detected, force them to dashboard
   useEffect(() => {
@@ -37,44 +28,6 @@ const Auth: React.FC = () => {
       navigate('/');
     }
   }, [user, navigate]);
-
-  const handleGoogleLogin = async () => {
-    setLoading(true);
-    setError(null);
-    const provider = new GoogleAuthProvider();
-    
-    // Add custom parameters to force account selection if needed
-    provider.setCustomParameters({
-      prompt: 'select_account'
-    });
-
-    try {
-      console.log('Starting Google Auth with popup...');
-      await signInWithPopup(auth, provider);
-    } catch (err: any) {
-      console.error('Google Auth error:', err);
-      
-      let message = err.message || 'An error occurred during Google authentication';
-      
-      if (err.code === 'auth/unauthorized-domain') {
-        message = 'Domain not authorized! Please add your current URL to "Authorized domains" in the Firebase Console.';
-      } else if (err.code === 'auth/popup-closed-by-user') {
-        message = 'Login popup was closed. Please try again.';
-      } else if (err.code === 'auth/operation-not-allowed') {
-        message = 'Google login is not enabled in your Firebase project. Please enable it in the Firebase Console.';
-      } else if (err.code === 'auth/internal-error' || err.code === 'auth/network-request-failed') {
-        message = 'Network error or security block. This often happens in the preview window. Please open the app in a new tab.';
-        setShowHelp(true);
-      } else if (err.message?.includes('Cross-Origin-Opener-Policy') || isIframe) {
-        message = 'Security policy blocked the login. This happens in the preview window. Please use the "Open in New Tab" button below.';
-        setShowHelp(true);
-      }
-      
-      setError(message);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleEmailAuth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -100,19 +53,14 @@ const Auth: React.FC = () => {
       if (err.code === 'auth/user-not-found') message = 'No account found. Please check your email or Sign Up.';
       if (err.code === 'auth/wrong-password') message = 'Incorrect password. Please try again.';
       if (err.code === 'auth/invalid-credential') {
-        message = 'Login failed. If you usually use Google, please use the "Google Account" button below. (Note: Password login won\'t work if you signed up with Google)';
+        message = 'Login failed. Please check your credentials.';
       }
       if (err.code === 'auth/email-already-in-use') {
-        message = 'This email is already registered. Please switch to "Sign In" or use Google.';
+        message = 'This email is already registered. Please switch to "Sign In".';
         setIsLogin(true); // Auto-switch to login mode
       }
       if (err.code === 'auth/weak-password') message = 'Password should be at least 6 characters.';
       if (err.code === 'auth/invalid-email') message = 'Please enter a valid email address.';
-      
-      // If we see COOP or generic errors in an iframe, suggest new tab
-      if (isIframe || err.message?.includes('cross-origin')) {
-        setShowHelp(true);
-      }
       
       setError(message);
     } finally {
@@ -140,15 +88,6 @@ const Auth: React.FC = () => {
   return (
     <div className="min-h-screen bg-indigo-600 flex items-center justify-center p-4">
       <div className="bg-white w-full max-w-md rounded-[3rem] shadow-2xl p-8 md:p-10 text-center relative overflow-hidden">
-        {/* Help Toggle */}
-        <button 
-          onClick={() => setShowHelp(!showHelp)}
-          className="absolute top-6 right-6 text-gray-400 hover:text-indigo-600 transition-colors"
-          title="Troubleshooting Help"
-        >
-          <HelpCircle size={20} />
-        </button>
-
         <div className="w-16 h-16 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600 mx-auto mb-6 shadow-inner">
           <Shirt size={32} />
         </div>
@@ -158,64 +97,12 @@ const Auth: React.FC = () => {
           {isLogin ? 'Welcome back! Sign in to continue.' : 'Create an account to start styling.'}
         </p>
 
-        {isIframe && !error && (
-          <div className="mb-6 p-4 bg-indigo-50 border-2 border-indigo-100 rounded-3xl text-left shadow-sm">
-            <div className="flex items-center gap-2 mb-2 text-indigo-700 font-black text-xs uppercase tracking-wider">
-              <AlertTriangle size={16} />
-              Preview Mode Notice
-            </div>
-            <p className="text-[11px] text-indigo-600 font-medium leading-relaxed mb-3">
-              Google Login may be blocked by browser security in this preview window. If it doesn't work, use the button below:
-            </p>
-            <a 
-              href={window.location.href} 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="flex items-center justify-center gap-2 w-full bg-white text-indigo-600 border-2 border-indigo-200 text-center py-2 rounded-xl font-black text-[11px] hover:bg-indigo-50 transition-all shadow-sm active:scale-95"
-            >
-              <ExternalLink size={14} />
-              OPEN IN NEW TAB TO LOGIN
-            </a>
-          </div>
-        )}
-
-        {showHelp && (
-          <div className="bg-indigo-50 text-indigo-700 p-5 rounded-3xl mb-8 text-left text-xs leading-relaxed border-2 border-indigo-100 shadow-sm">
-            <div className="flex items-center gap-2 mb-3 font-black uppercase tracking-wider text-indigo-600">
-              <AlertTriangle size={16} />
-              Login Issues?
-            </div>
-            <p className="mb-4 font-medium">If Google login is getting stuck or showing errors, click the button below to open the app in a new tab. This fixes most security blocks.</p>
-            <a 
-              href={window.location.href} 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="flex items-center justify-center gap-2 w-full bg-indigo-600 text-white text-center py-3 rounded-xl font-black hover:bg-indigo-700 transition-all shadow-md active:scale-95"
-            >
-              <ExternalLink size={16} />
-              FIX LOGIN: OPEN IN NEW TAB
-            </a>
-          </div>
-        )}
-
         {error && (
           <div className="bg-red-50 text-red-600 p-4 rounded-2xl mb-6 text-xs font-bold border border-red-100 flex flex-col gap-3 text-left">
             <div className="flex items-start gap-2">
               <AlertTriangle size={16} className="shrink-0" />
               <span>{error}</span>
             </div>
-            
-            {(error.includes('preview window') || error.includes('Security policy') || isIframe) && (
-              <a 
-                href={window.location.href} 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="flex items-center justify-center gap-2 w-full bg-red-600 text-white text-center py-2 rounded-xl font-black text-[10px] hover:bg-red-700 transition-all shadow-md active:scale-95 mt-1"
-              >
-                <ExternalLink size={14} />
-                FIX THIS: OPEN IN NEW TAB
-              </a>
-            )}
           </div>
         )}
 
@@ -286,28 +173,7 @@ const Auth: React.FC = () => {
           </button>
         </form>
 
-        <div className="relative mb-8">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-gray-100"></div>
-          </div>
-          <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-white px-4 text-gray-400 font-bold tracking-widest">Or continue with</span>
-          </div>
-        </div>
-
         <div className="space-y-4">
-          <button
-            type="button"
-            onClick={handleGoogleLogin}
-            disabled={loading}
-            className="w-full flex items-center justify-center gap-3 py-3 bg-white border-2 border-gray-100 rounded-xl hover:border-indigo-500 hover:bg-indigo-50 transition-all group shadow-sm"
-          >
-            <Chrome size={20} className="text-red-500 group-hover:scale-110 transition-transform" />
-            <span className="font-bold text-gray-700 text-sm">
-              Google Account
-            </span>
-          </button>
-          
           <button
             type="button"
             onClick={() => setIsLogin(!isLogin)}
@@ -315,17 +181,6 @@ const Auth: React.FC = () => {
           >
             {isLogin ? "Don't have an account? Sign Up" : "Already have an account? Sign In"}
           </button>
-
-          <div className="pt-4 border-t border-gray-100 mt-4">
-            <button
-              type="button"
-              onClick={skipLogin}
-              className="text-xs font-black text-indigo-600 hover:text-indigo-700 uppercase tracking-widest flex items-center gap-2 mx-auto"
-            >
-              Skip for now (Guest Mode)
-              <ArrowRight size={14} />
-            </button>
-          </div>
         </div>
       </div>
     </div>

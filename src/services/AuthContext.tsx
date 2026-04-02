@@ -7,7 +7,6 @@ import { User } from '../types';
 interface AuthContextType {
   user: User | null;
   logout: () => Promise<void>;
-  skipLogin: () => void;
   loading: boolean;
 }
 
@@ -18,53 +17,44 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Safety timeout: if onAuthStateChanged doesn't fire within 5 seconds,
+    // Safety timeout: if onAuthStateChanged doesn't fire within 1.5 seconds,
     // stop loading and show whatever state we have.
     const timeoutId = setTimeout(() => {
       if (loading) {
         console.warn('Auth initialization timed out, forcing loading to false.');
         setLoading(false);
       }
-    }, 5000);
+    }, 1500);
 
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       clearTimeout(timeoutId);
-      try {
-        if (firebaseUser) {
-          try {
-            // Fetch user profile from Firestore
-            const profile = await storage.getUserProfile(firebaseUser.uid);
-            if (profile) {
-              setUser(profile);
-            } else {
-              // If profile doesn't exist (e.g. first time login with provider), create it
-              const newUser: User = {
-                id: firebaseUser.uid,
-                email: firebaseUser.email || '',
-                name: firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'User'
-              };
-              await storage.saveUserProfile(newUser);
-              setUser(newUser);
-            }
-          } catch (firestoreError) {
-            console.error('Firestore profile fetch failed, using fallback:', firestoreError);
-            // Fallback to basic info from Firebase Auth if Firestore is unreachable
-            const fallbackUser: User = {
-              id: firebaseUser.uid,
-              email: firebaseUser.email || '',
-              name: firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'User'
-            };
-            console.log('Bypassing Firestore error, logging in with fallback:', fallbackUser);
-            setUser(fallbackUser);
-          }
-        } else {
-          setUser(null);
-        }
-      } catch (error) {
-        console.error('Auth state change error:', error);
+      
+      if (!firebaseUser) {
         setUser(null);
-      } finally {
         setLoading(false);
+        return;
+      }
+
+      // Set basic user info immediately to unblock the UI
+      const basicUser: User = {
+        id: firebaseUser.uid,
+        email: firebaseUser.email || '',
+        name: firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'User'
+      };
+      setUser(basicUser);
+      setLoading(false);
+
+      // Fetch full profile in the background
+      try {
+        const profile = await storage.getUserProfile(firebaseUser.uid);
+        if (profile) {
+          setUser(profile);
+        } else {
+          // If profile doesn't exist, save the basic one
+          await storage.saveUserProfile(basicUser);
+        }
+      } catch (firestoreError) {
+        console.error('Background Firestore profile fetch failed:', firestoreError);
       }
     });
 
@@ -83,17 +73,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const skipLogin = () => {
-    const guestUser: User = {
-      id: 'guest_user',
-      email: 'guest@example.com',
-      name: 'Guest User'
-    };
-    setUser(guestUser);
-  };
-
   return (
-    <AuthContext.Provider value={{ user, logout, skipLogin, loading }}>
+    <AuthContext.Provider value={{ user, logout, loading }}>
       {children}
     </AuthContext.Provider>
   );

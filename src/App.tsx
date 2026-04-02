@@ -9,15 +9,32 @@ import Auth from './pages/Auth';
 
 const AppContent: React.FC = () => {
   const { user, loading } = useAuth();
+  const [showBypass, setShowBypass] = React.useState(false);
+
+  React.useEffect(() => {
+    if (loading) {
+      const timer = setTimeout(() => setShowBypass(true), 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [loading]);
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center h-screen bg-indigo-600 text-white">
+      <div className="flex flex-col items-center justify-center h-screen bg-indigo-600 text-white p-6 text-center">
         <div className="w-20 h-20 bg-white/10 rounded-[2rem] flex items-center justify-center mb-6 animate-pulse">
           <Shirt size={44} />
         </div>
         <h1 className="text-2xl font-black tracking-tight mb-2">StyleSnap</h1>
-        <p className="text-indigo-100 font-medium animate-pulse">Styling your experience...</p>
+        <p className="text-indigo-100 font-medium animate-pulse mb-8">Styling your experience...</p>
+        
+        {showBypass && (
+          <button 
+            onClick={() => window.location.reload()}
+            className="px-6 py-3 bg-white/10 hover:bg-white/20 rounded-xl text-xs font-black uppercase tracking-widest transition-all animate-in"
+          >
+            Taking too long? Refresh
+          </button>
+        )}
       </div>
     );
   }
