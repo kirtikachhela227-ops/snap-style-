@@ -16,7 +16,7 @@ const firebaseConfig = {
 // Initialize Firebase SDK
 const app = initializeApp(firebaseConfig);
 
-// Use initializeFirestore with aggressive settings to fix 'client is offline'
+// Use initializeFirestore with settings to fix 'client is offline' in preview environments
 const firestoreDbId = import.meta.env.VITE_FIREBASE_FIRESTORE_DATABASE_ID || firebaseConfigJson.firestoreDatabaseId || '(default)';
 
 export const db = initializeFirestore(app, {

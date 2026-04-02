@@ -178,30 +178,38 @@ const SUGGESTIONS: Outfit[] = [
   }
 ];
 
-// Connection test
+// Connection test - use getDoc instead of getDocFromServer to be less resilient
 async function testConnection() {
   try {
-    await getDocFromServer(doc(db, 'test', 'connection'));
+    // Just a simple check, don't force server if we have cache
+    await getDoc(doc(db, 'test', 'connection'));
   } catch (error) {
-    if(error instanceof Error && error.message.includes('the client is offline')) {
-      console.error("Please check your Firebase configuration. ");
-    }
+    // Only log if it's a persistent failure
+    console.debug("Initial connection check:", error);
   }
 }
 testConnection();
 
 export const storage = {
   // Users
-  getUserProfile: async (userId: string): Promise<User | null> => {
+  getUserProfile: async (userId: string, retries = 3): Promise<User | null> => {
     const path = `users/${userId}`;
-    try {
-      // Use getDoc instead of getDocFromServer to allow cached reads if network is flaky
-      const userDoc = await getDoc(doc(db, 'users', userId));
-      return userDoc.exists() ? (userDoc.data() as User) : null;
-    } catch (error) {
-      handleFirestoreError(error, OperationType.GET, path);
-      return null;
+    for (let i = 0; i < retries; i++) {
+      try {
+        const userDoc = await getDoc(doc(db, 'users', userId));
+        return userDoc.exists() ? (userDoc.data() as User) : null;
+      } catch (error: any) {
+        const isOffline = error?.message?.includes('offline') || error?.code === 'unavailable';
+        if (isOffline && i < retries - 1) {
+          console.warn(`Firestore fetch failed (attempt ${i + 1}/${retries}), retrying in 1s...`);
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          continue;
+        }
+        handleFirestoreError(error, OperationType.GET, path);
+        return null;
+      }
     }
+    return null;
   },
 
   saveUserProfile: async (user: User): Promise<void> => {

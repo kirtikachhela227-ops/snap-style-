@@ -42,20 +42,35 @@ const Auth: React.FC = () => {
     setLoading(true);
     setError(null);
     const provider = new GoogleAuthProvider();
+    
+    // Add custom parameters to force account selection if needed
+    provider.setCustomParameters({
+      prompt: 'select_account'
+    });
+
     try {
+      console.log('Starting Google Auth with popup...');
       await signInWithPopup(auth, provider);
     } catch (err: any) {
       console.error('Google Auth error:', err);
+      
+      let message = err.message || 'An error occurred during Google authentication';
+      
       if (err.code === 'auth/unauthorized-domain') {
-        setError('Domain not authorized! Please add your Vercel URL to "Authorized domains" in the Firebase Console.');
+        message = 'Domain not authorized! Please add your current URL to "Authorized domains" in the Firebase Console.';
       } else if (err.code === 'auth/popup-closed-by-user') {
-        setError('Login popup was closed. Please try again.');
-      } else if (err.message?.includes('Cross-Origin-Opener-Policy') || isIframe) {
-        setError('Security policy blocked the login. This happens in the preview window. Please use the "Open in New Tab" button below.');
+        message = 'Login popup was closed. Please try again.';
+      } else if (err.code === 'auth/operation-not-allowed') {
+        message = 'Google login is not enabled in your Firebase project. Please enable it in the Firebase Console.';
+      } else if (err.code === 'auth/internal-error' || err.code === 'auth/network-request-failed') {
+        message = 'Network error or security block. This often happens in the preview window. Please open the app in a new tab.';
         setShowHelp(true);
-      } else {
-        setError(err.message || 'An error occurred during Google authentication');
+      } else if (err.message?.includes('Cross-Origin-Opener-Policy') || isIframe) {
+        message = 'Security policy blocked the login. This happens in the preview window. Please use the "Open in New Tab" button below.';
+        setShowHelp(true);
       }
+      
+      setError(message);
     } finally {
       setLoading(false);
     }
@@ -143,10 +158,24 @@ const Auth: React.FC = () => {
           {isLogin ? 'Welcome back! Sign in to continue.' : 'Create an account to start styling.'}
         </p>
 
-        {isIframe && !showHelp && !error && (
-          <div className="mb-6 p-3 bg-amber-50 border border-amber-100 rounded-xl text-[10px] text-amber-700 font-medium flex items-center gap-2">
-            <AlertTriangle size={14} className="shrink-0" />
-            <span>Running in preview mode. If login fails, click the "?" icon.</span>
+        {isIframe && !error && (
+          <div className="mb-6 p-4 bg-indigo-50 border-2 border-indigo-100 rounded-3xl text-left shadow-sm">
+            <div className="flex items-center gap-2 mb-2 text-indigo-700 font-black text-xs uppercase tracking-wider">
+              <AlertTriangle size={16} />
+              Preview Mode Notice
+            </div>
+            <p className="text-[11px] text-indigo-600 font-medium leading-relaxed mb-3">
+              Google Login may be blocked by browser security in this preview window. If it doesn't work, use the button below:
+            </p>
+            <a 
+              href={window.location.href} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="flex items-center justify-center gap-2 w-full bg-white text-indigo-600 border-2 border-indigo-200 text-center py-2 rounded-xl font-black text-[11px] hover:bg-indigo-50 transition-all shadow-sm active:scale-95"
+            >
+              <ExternalLink size={14} />
+              OPEN IN NEW TAB TO LOGIN
+            </a>
           </div>
         )}
 
@@ -170,9 +199,23 @@ const Auth: React.FC = () => {
         )}
 
         {error && (
-          <div className="bg-red-50 text-red-600 p-4 rounded-2xl mb-6 text-xs font-bold border border-red-100 flex items-start gap-2 text-left">
-            <AlertTriangle size={16} className="shrink-0" />
-            <span>{error}</span>
+          <div className="bg-red-50 text-red-600 p-4 rounded-2xl mb-6 text-xs font-bold border border-red-100 flex flex-col gap-3 text-left">
+            <div className="flex items-start gap-2">
+              <AlertTriangle size={16} className="shrink-0" />
+              <span>{error}</span>
+            </div>
+            
+            {(error.includes('preview window') || error.includes('Security policy') || isIframe) && (
+              <a 
+                href={window.location.href} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="flex items-center justify-center gap-2 w-full bg-red-600 text-white text-center py-2 rounded-xl font-black text-[10px] hover:bg-red-700 transition-all shadow-md active:scale-95 mt-1"
+              >
+                <ExternalLink size={14} />
+                FIX THIS: OPEN IN NEW TAB
+              </a>
+            )}
           </div>
         )}
 
