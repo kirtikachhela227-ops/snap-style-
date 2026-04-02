@@ -192,7 +192,7 @@ testConnection();
 
 export const storage = {
   // Users
-  getUserProfile: async (userId: string, retries = 3): Promise<User | null> => {
+  getUserProfile: async (userId: string, retries = 1): Promise<User | null> => {
     const path = `users/${userId}`;
     for (let i = 0; i < retries; i++) {
       try {
@@ -205,7 +205,8 @@ export const storage = {
           await new Promise(resolve => setTimeout(resolve, 1000));
           continue;
         }
-        handleFirestoreError(error, OperationType.GET, path);
+        // Don't throw for GET, just return null so AuthContext can use fallback
+        console.error('Firestore Read Error (Non-critical):', error);
         return null;
       }
     }

@@ -13,7 +13,7 @@ import { useAuth } from '../services/AuthContext';
 import { Shirt, Chrome, Mail, Lock, User as UserIcon, ArrowRight, HelpCircle, AlertTriangle, ExternalLink } from 'lucide-react';
 
 const Auth: React.FC = () => {
-  const { user } = useAuth();
+  const { user, skipLogin } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -315,6 +315,17 @@ const Auth: React.FC = () => {
           >
             {isLogin ? "Don't have an account? Sign Up" : "Already have an account? Sign In"}
           </button>
+
+          <div className="pt-4 border-t border-gray-100 mt-4">
+            <button
+              type="button"
+              onClick={skipLogin}
+              className="text-xs font-black text-indigo-600 hover:text-indigo-700 uppercase tracking-widest flex items-center gap-2 mx-auto"
+            >
+              Skip for now (Guest Mode)
+              <ArrowRight size={14} />
+            </button>
+          </div>
         </div>
       </div>
     </div>

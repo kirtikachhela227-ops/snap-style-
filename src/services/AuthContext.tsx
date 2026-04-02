@@ -7,6 +7,7 @@ import { User } from '../types';
 interface AuthContextType {
   user: User | null;
   logout: () => Promise<void>;
+  skipLogin: () => void;
   loading: boolean;
 }
 
@@ -17,7 +18,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Safety timeout: if onAuthStateChanged doesn't fire within 5 seconds,
+    // stop loading and show whatever state we have.
+    const timeoutId = setTimeout(() => {
+      if (loading) {
+        console.warn('Auth initialization timed out, forcing loading to false.');
+        setLoading(false);
+      }
+    }, 5000);
+
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      clearTimeout(timeoutId);
       try {
         if (firebaseUser) {
           try {
@@ -57,19 +68,32 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     });
 
-    return () => unsubscribe();
+    return () => {
+      unsubscribe();
+      clearTimeout(timeoutId);
+    };
   }, []);
 
   const logout = async () => {
     try {
       await signOut(auth);
+      setUser(null);
     } catch (error) {
       console.error('Logout error:', error);
     }
   };
 
+  const skipLogin = () => {
+    const guestUser: User = {
+      id: 'guest_user',
+      email: 'guest@example.com',
+      name: 'Guest User'
+    };
+    setUser(guestUser);
+  };
+
   return (
-    <AuthContext.Provider value={{ user, logout, loading }}>
+    <AuthContext.Provider value={{ user, logout, skipLogin, loading }}>
       {children}
     </AuthContext.Provider>
   );
